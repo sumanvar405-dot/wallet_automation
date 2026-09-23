@@ -200,6 +200,20 @@
         <div id="overlay-status-container">
             <div id="overlay-live-status">INITIALIZING...</div>
             <h1 style="font-size:24px;letter-spacing:8px;margin:0;opacity:0.6;">SYSTEM ACTIVE</h1>
+            <button id="overlayStopBtn" style="
+                margin-top: 15px;
+                background: rgba(255, 45, 85, 0.25);
+                color: #ff2d55;
+                border: 1px solid #ff2d5588;
+                padding: 8px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 13px;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                transition: all 0.2s ease;
+            ">STOP SYSTEM</button>
         </div>`;
         document.body.appendChild(overlay);
     }
@@ -226,17 +240,12 @@
             </div>
 
             <label class="cyber-label"> 
-                Amount 
+                Select Range 
             </label> 
-    
-            <input 
-                type="text" 
-                id="buyAmount" 
-                class="cyber-input" 
-                value="2000"
-                min="1" 
-                oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-            > 
+            <div class="toggle-container" id="rangeToggle">
+                <div class="toggle-option active" data-min="700" data-max="1000">700 - 1000</div>
+                <div class="toggle-option" data-min="1000" data-max="2000">1000 - 2000</div>
+            </div>
     
             <div class="cyber-buttons"> 
                 <button 
@@ -268,20 +277,73 @@
     const statusEl = document.getElementById("cyberStatus");
     const startBtn = document.getElementById("startBtn");
     const stopBtn = document.getElementById("stopBtn");
-    const amountInput = document.getElementById("buyAmount");
     const orderTypeToggle = document.getElementById("orderTypeToggle");
+    const rangeToggle = document.getElementById("rangeToggle");
+    const overlayStopBtn = document.getElementById("overlayStopBtn");
+
+    if (overlayStopBtn) {
+        overlayStopBtn.onclick = () => stopBtn.click();
+    }
 
     let isRunning = false;
     let selectedOrderType = 1;
+    let selectedMinAmount = 700;
+    let selectedMaxAmount = 1000;
     let isPremiumMember = false;
 
-    // Toggle logic
+    // Restore saved selections
+    try {
+        const savedOrderType = localStorage.getItem("cyber_order_type");
+        if (savedOrderType) {
+            selectedOrderType = Number(savedOrderType) || 1;
+            orderTypeToggle.querySelectorAll(".toggle-option").forEach(opt => {
+                if (Number(opt.dataset.value) === selectedOrderType) {
+                    opt.classList.add("active");
+                } else {
+                    opt.classList.remove("active");
+                }
+            });
+        }
+
+        const savedRange = JSON.parse(localStorage.getItem("cyber_selected_range") || "null");
+        if (savedRange && savedRange.min && savedRange.max) {
+            selectedMinAmount = Number(savedRange.min);
+            selectedMaxAmount = Number(savedRange.max);
+            rangeToggle.querySelectorAll(".toggle-option").forEach(opt => {
+                if (Number(opt.dataset.min) === selectedMinAmount && Number(opt.dataset.max) === selectedMaxAmount) {
+                    opt.classList.add("active");
+                } else {
+                    opt.classList.remove("active");
+                }
+            });
+        }
+    } catch (e) {
+        console.log("Error restoring settings:", e);
+    }
+
+    // Toggle logic for Payment Type
     orderTypeToggle.querySelectorAll(".toggle-option").forEach(opt => {
         opt.onclick = () => {
-            orderTypeToggle.querySelector(".active").classList.remove("active");
+            orderTypeToggle.querySelector(".active")?.classList.remove("active");
             opt.classList.add("active");
             selectedOrderType = Number(opt.dataset.value);
+            localStorage.setItem("cyber_order_type", String(selectedOrderType));
             console.log("Selected Order Type:", selectedOrderType === 1 ? "UPI" : "BANK");
+        };
+    });
+
+    // Toggle logic for Range Selection
+    rangeToggle.querySelectorAll(".toggle-option").forEach(opt => {
+        opt.onclick = () => {
+            rangeToggle.querySelector(".active")?.classList.remove("active");
+            opt.classList.add("active");
+            selectedMinAmount = Number(opt.dataset.min);
+            selectedMaxAmount = Number(opt.dataset.max);
+            localStorage.setItem("cyber_selected_range", JSON.stringify({
+                min: selectedMinAmount,
+                max: selectedMaxAmount
+            }));
+            console.log(`Selected Range: ₹${selectedMinAmount} - ₹${selectedMaxAmount}`);
         };
     });
 
@@ -354,10 +416,51 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    function playRingtone(durationMs = 2000) {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            if (ctx.state === "suspended") {
+                ctx.resume();
+            }
+            const startTime = ctx.currentTime;
+            const endTime = startTime + (durationMs / 1000);
+
+            // Ringtone cadence: melodic ringing pulses
+            const pulseLen = 0.18;
+            const pulseGap = 0.08;
+            let t = startTime;
+            let toggle = false;
+
+            while (t < endTime - 0.05) {
+                const freqs = toggle ? [784, 1046.5] : [659.25, 880];
+                freqs.forEach(freq => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(freq, t);
+                    gain.gain.setValueAtTime(0.25, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + pulseLen);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + pulseLen);
+                });
+                toggle = !toggle;
+                t += pulseLen + pulseGap;
+            }
+        } catch (e) {
+            console.error("Audio playback error:", e);
+        }
+    }
+
     // =========================
-    // TOKEN FETCH
+    // TOKEN & USER INFO FETCH
     // =========================
     let token = null;
+    let memberId = "11603832";
+    let buyerKycId = 5315895;
 
     try {
 
@@ -374,37 +477,6 @@
             return;
         }
 
-        // Initialize amount and button state
-        function updateStartButtonState() {
-            const amount = Number(amountInput.value);
-            if (!isPremiumMember) {
-                if (amount < 2000) {
-                    startBtn.disabled = true;
-                    startBtn.style.opacity = "0.5";
-                    startBtn.style.cursor = "not-allowed";
-                } else {
-                    startBtn.disabled = false;
-                    startBtn.style.opacity = "1";
-                    startBtn.style.cursor = "pointer";
-                }
-            } else {
-                startBtn.disabled = false;
-                startBtn.style.opacity = "1";
-                startBtn.style.cursor = "pointer";
-            }
-        }
-
-        // Set default amount to 2000 for non-premium members
-        if (!isPremiumMember) {
-            amountInput.value = "2000";
-        }
-
-        // Add input listener to update button state
-        amountInput.addEventListener('input', updateStartButtonState);
-
-        // Initialize button state
-        updateStartButtonState();
-
         const rawToken = localStorage.getItem("token");
 
         if (rawToken) {
@@ -417,6 +489,17 @@
 
         if (!token && window.token?.value) {
             token = window.token.value;
+        }
+
+        const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+        const foundMemberId = userInfo?.value?.memberId || userInfo?.value?.memberld || userInfo?.memberId;
+        if (foundMemberId) {
+            memberId = String(foundMemberId);
+        }
+
+        const foundKycId = userInfo?.value?.buyerKycId || userInfo?.value?.kycId || userInfo?.buyerKycId || localStorage.getItem("buyerKycId");
+        if (foundKycId) {
+            buyerKycId = Number(foundKycId) || 5315895;
         }
 
     } catch (e) {
@@ -433,19 +516,10 @@
     // =========================
     const deviceCode =
         localStorage.getItem("arb_device_code") ||
-        crypto.randomUUID().replace(/-/g, "");
+        localStorage.getItem("deviceCode") ||
+        "0052ec92dd1d4c27af377b2653d7d88a";
 
     localStorage.setItem("arb_device_code", deviceCode);
-
-    const headers = {
-        "accept": "application/json, text/plain, */*",
-        "content-type": "application/json",
-        "authorization": `Bearer ${token}`,
-        "deviceId": "undefined",
-        "deviceType": "3",
-        "page": "Arb",
-        "deviceCode": deviceCode
-    };
 
     // =========================
     // BUTTON LOGIC
@@ -453,25 +527,23 @@
     startBtn.onclick = () => {
         if (isRunning) return;
 
-        const amount = Number(amountInput.value);
-        if (!amount) {
-            setStatus("Enter amount");
-            return;
-        }
-
-        if (!isPremiumMember && amount < 2000) {
-            setStatus("Minimum order value is 2000");
-            return;
-        }
-
         isRunning = true;
+        localStorage.setItem("cyber_auto_running", "true");
+        localStorage.setItem("cyber_selected_range", JSON.stringify({
+            min: selectedMinAmount,
+            max: selectedMaxAmount
+        }));
+        localStorage.setItem("cyber_order_type", String(selectedOrderType));
+
         overlay.style.display = "flex";
-        setStatus("🟢 Running | Amount ₹" + amount);
-        runMainLoop(amount, selectedOrderType);
+        const typeLabel = selectedOrderType === 1 ? "UPI" : "BANK";
+        setStatus(`🟢 Running | ₹${selectedMinAmount}-₹${selectedMaxAmount} (${typeLabel})`);
+        runMainLoop(selectedMinAmount, selectedMaxAmount, selectedOrderType);
     };
 
     stopBtn.onclick = () => {
         isRunning = false;
+        localStorage.setItem("cyber_auto_running", "false");
         overlay.style.display = "none";
         setStatus("🔴 Stopped");
     };
@@ -507,107 +579,96 @@
     // =========================
     // MAIN LOOP
     // =========================
-    async function runMainLoop(targetAmount, type) {
+    async function runMainLoop(minAmount, maxAmount, type) {
         while (isRunning) {
 
             try {
 
                 const typeLabel = type === 1 ? "UPI" : "BANK";
-                setStatus(`Checking ${typeLabel} orders for ₹${targetAmount}...`);
+                setStatus(`Matching ${typeLabel} [₹${minAmount}-₹${maxAmount}]...`);
 
-                const listRes = await fetch(
-                    "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
+                const reqHeaders = {
+                    "Accept": "application/json, text/plain, */*",
+                    "Content-Type": "application/json",
+                    "language": "1",
+                    "authorization": `Bearer ${token}`,
+                    "memberId": String(memberId),
+                    "deviceId": "undefined",
+                    "deviceType": "3",
+                    "deviceCode": deviceCode
+                };
+
+                const reqBody = {
+                    maxAmount: maxAmount,
+                    minAmount: minAmount,
+                    orderType: type,
+                    buyBankCode: "moneyView",
+                    buyerKycId: buyerKycId
+                };
+
+                const response = await fetch(
+                    "https://apiweb.apiarbpay.com/ar-wallet/smartRangeBuy/match/start",
+                    {
                         method: "POST",
-                        headers,
-                        body: JSON.stringify({
-                            orderType: type,
-                            pageNo: 1
-                        })
+                        headers: reqHeaders,
+                        body: JSON.stringify(reqBody)
                     }
                 );
 
-                const listData = await listRes.json();
-                const orders = listData?.data?.list || [];
-
-                if (!orders.length) {
-                    setStatus("No orders found...");
-                    await sleep(300);
-                    continue;
+                const data = await response.json();
+                console.log("Match response:", data);
+                if (data?.data?.buyResult) {
+                    console.table([data.data.buyResult]);
                 }
 
-                const candidates = orders.filter(
-                    item => Number(item.amount) === targetAmount
+                // Check match condition:
+                // Response matched: {"code":"1","data":{"matchResult":"MATCHED","matchInfo":{"status":"COMPLETED"
+                const matchResult = data?.data?.matchResult;
+                const matchInfoStatus = String(data?.data?.matchInfo?.status || "").toUpperCase();
+                const isMatched = String(data?.code) === "1" && (
+                    (matchResult === "MATCHED" && matchInfoStatus === "COMPLETED") ||
+                    matchResult === "MATCHED" ||
+                    Boolean(data?.data?.buyResult)
                 );
 
-                if (!candidates.length) {
-                    setStatus(`Waiting for order ₹${targetAmount}`);
-                    await sleep(300);
-                    continue;
+                if (isMatched) {
+                    setStatus(`🟢 MATCHED! Order completed. Refreshing in 2s...`);
+                    console.log("Match success! Playing ringtone for 2s and refreshing page...");
+                    localStorage.setItem("cyber_auto_running", "true");
+                    playRingtone(2000);
+                    await sleep(2000);
+                    location.reload();
+                    return;
                 }
 
-                for (const order of candidates) {
-                    if (!isRunning) break;
-
-                    setStatus(`Trying ₹${order.amount}`);
-
-                    const payload = {
-                        amount: order.amount,
-                        platformOrder: order.platformOrder,
-                        payType: order.payType,
-                        orderType: order.orderType
-                    };
-
-                    try {
-                        const beforeBuyRes = await fetch(
-                            "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/beforeBuy", {
-                                method: "POST",
-                                headers,
-                                body: JSON.stringify(payload)
-                            }
-                        );
-
-                        const beforeBuyData = await beforeBuyRes.json();
-
-                        if (beforeBuyData.code !== "1") {
-                            continue;
-                        }
-
-                        const buyRes = await fetch(
-                            "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buy", {
-                                method: "POST",
-                                headers,
-                                body: JSON.stringify({
-                                    amount: order.amount,
-                                    platformOrder: order.platformOrder,
-                                    payType: order.payType,
-                                    orderType: order.orderType,
-                                    buyBankCode: "moneyView",
-                                    buyerKycId: ""
-                                })
-                            }
-                        );
-
-                        const buyData = await buyRes.json();
-
-                        if (buyData.code === "1" || buyData.msg === "Success") {
-                            setStatus(`SUCCESS ₹${order.amount}`);
-                            location.reload();
-                            return;
-                        }
-
-                    } catch (err) {
-                        console.error(err);
-                    }
+                // If not matched, update live status and keep running
+                if (String(data?.code) === "1") {
+                    const statusText = matchResult || data?.msg || "Searching...";
+                    setStatus(`⏳ ${statusText} [₹${minAmount}-₹${maxAmount}]`);
+                } else {
+                    setStatus(`⚠️ ${data?.msg || "Matching..."}`);
                 }
 
-                await sleep(300);
+                await sleep(800);
 
-            } catch (e) {
-                console.error(e);
-                setStatus("Error. Retrying...");
-                await sleep(500);
+            } catch (err) {
+                console.error("Match loop error:", err);
+                setStatus("⚠️ Connection error. Retrying...");
+                await sleep(1500);
             }
         }
+    }
+
+    // =========================
+    // AUTO-RESUME CHECK
+    // =========================
+    if (localStorage.getItem("cyber_auto_running") === "true") {
+        console.log("Auto-run is enabled. Starting smart range buy in 800ms...");
+        setTimeout(() => {
+            if (localStorage.getItem("cyber_auto_running") === "true" && !isRunning) {
+                startBtn.click();
+            }
+        }, 800);
     }
 
     
