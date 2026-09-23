@@ -644,7 +644,7 @@
                     setStatus(`⚠️ ${data?.msg || "Matching..."}`);
                 }
 
-                await sleep(800);
+                await sleep(1000);
 
             } catch (err) {
                 console.error("Match loop error:", err);
