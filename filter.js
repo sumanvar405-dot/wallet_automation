@@ -162,16 +162,62 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 15px;
+        gap: 12px;
+        padding: 32px 50px;
+        background: radial-gradient(circle at top, rgba(16, 26, 56, 0.88), rgba(7, 11, 25, 0.96));
+        border: 1px solid rgba(0, 247, 255, 0.25);
+        border-radius: 20px;
+        box-shadow: 
+            0 24px 60px rgba(0, 0, 0, 0.6),
+            0 0 30px rgba(0, 247, 255, 0.12);
+        backdrop-filter: blur(20px);
+    }
+
+    .overlay-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 2.5px;
+        color: #00f7ff;
+        background: rgba(0, 247, 255, 0.08);
+        border: 1px solid rgba(0, 247, 255, 0.2);
+        padding: 5px 14px;
+        border-radius: 20px;
+        text-transform: uppercase;
+    }
+
+    .overlay-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #00ff95;
+        box-shadow: 0 0 8px #00ff95;
+        animation: cyberPulse 2s infinite ease-in-out;
+    }
+
+    @keyframes cyberPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.35; transform: scale(0.85); }
     }
 
     #overlay-live-status {
-        font-size: 18px;
-        color: #00ff95;
+        font-size: 20px;
+        font-weight: 600;
+        color: #ffffff;
+        letter-spacing: 1px;
+        margin: 4px 0 0;
+        text-align: center;
+    }
+
+    #overlay-sub-status {
+        font-size: 11px;
+        letter-spacing: 3px;
+        color: #8defff;
+        opacity: 0.65;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        margin-bottom: 5px;
-        text-shadow: 0 0 10px #00ff95aa;
+        font-weight: 600;
     }
     `;
     document.head.appendChild(style);
@@ -186,34 +232,22 @@
         overlay.style.cssText = `
             position:fixed;
             inset:0;
-            background:rgba(0,0,0,0.85);
-            backdrop-filter:blur(12px);
+            background:rgba(5, 8, 18, 0.82);
+            backdrop-filter:blur(14px);
             z-index:999998;
             display:none;
             align-items:center;
             justify-content:center;
-            color:#00f7ff;
-            font-family:Arial,sans-serif;
-            text-shadow:0 0 10px #00f7ff;
+            font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         `;
         overlay.innerHTML = `
         <div id="overlay-status-container">
-            <div id="overlay-live-status">INITIALIZING...</div>
-            <h1 style="font-size:24px;letter-spacing:8px;margin:0;opacity:0.6;">SYSTEM ACTIVE</h1>
-            <button id="overlayStopBtn" style="
-                margin-top: 15px;
-                background: rgba(255, 45, 85, 0.25);
-                color: #ff2d55;
-                border: 1px solid #ff2d5588;
-                padding: 8px 24px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: bold;
-                font-size: 13px;
-                letter-spacing: 1px;
-                text-transform: uppercase;
-                transition: all 0.2s ease;
-            ">STOP SYSTEM</button>
+            <div class="overlay-badge">
+                <span class="overlay-badge-dot"></span>
+                SMART ENGINE ACTIVE
+            </div>
+            <div id="overlay-live-status">INITIALIZING</div>
+            <div id="overlay-sub-status">AUTOMATED RANGE MATCH</div>
         </div>`;
         document.body.appendChild(overlay);
     }
@@ -279,11 +313,6 @@
     const stopBtn = document.getElementById("stopBtn");
     const orderTypeToggle = document.getElementById("orderTypeToggle");
     const rangeToggle = document.getElementById("rangeToggle");
-    const overlayStopBtn = document.getElementById("overlayStopBtn");
-
-    if (overlayStopBtn) {
-        overlayStopBtn.onclick = () => stopBtn.click();
-    }
 
     let isRunning = false;
     let selectedOrderType = 1;
@@ -347,34 +376,38 @@
         };
     });
 
-    function setStatus(msg) {
+    function setStatus(msg, sub = "") {
         console.log(msg);
         if (statusEl) {
             statusEl.innerText = msg;
             
             // Check for error or warning keywords
-            const isError = /denied|not found|Error|Stopped/i.test(msg);
+            const isError = /denied|not found|Error|Stopped|Retry/i.test(msg);
             const isSuccess = /SUCCESS|MATCHED|Running/i.test(msg);
             
             if (isError) {
-                statusEl.style.color = "#ff2d55";
-                statusEl.style.borderColor = "#ff2d5544";
-                statusEl.style.boxShadow = "inset 0 0 5px #ff2d5511";
+                statusEl.style.color = "#ff4d6d";
+                statusEl.style.borderColor = "rgba(255, 77, 109, 0.4)";
+                statusEl.style.boxShadow = "0 0 10px rgba(255, 77, 109, 0.15)";
             } else if (isSuccess) {
                 statusEl.style.color = "#00ff95";
-                statusEl.style.borderColor = "#00ff9544";
-                statusEl.style.boxShadow = "inset 0 0 5px #00ff9511";
+                statusEl.style.borderColor = "rgba(0, 255, 149, 0.4)";
+                statusEl.style.boxShadow = "0 0 10px rgba(0, 255, 149, 0.15)";
             } else {
-                statusEl.style.color = "#00f7ff";
-                statusEl.style.borderColor = "#00f7ff33";
-                statusEl.style.boxShadow = "inset 0 0 5px #00f7ff11";
+                statusEl.style.color = "#8defff";
+                statusEl.style.borderColor = "rgba(0, 247, 255, 0.25)";
+                statusEl.style.boxShadow = "none";
             }
         }
         if (overlayLiveStatus) {
             overlayLiveStatus.innerText = msg;
-            const isError = /denied|not found|Error|Stopped/i.test(msg);
-            overlayLiveStatus.style.color = isError ? "#ff2d55" : "#00ff95";
-            overlayLiveStatus.style.textShadow = isError ? "0 0 10px #ff2d55aa" : "0 0 10px #00ff95aa";
+            const isError = /denied|not found|Error|Stopped|Retry/i.test(msg);
+            const isSuccess = /SUCCESS|MATCHED/i.test(msg);
+            overlayLiveStatus.style.color = isError ? "#ff4d6d" : (isSuccess ? "#00ff95" : "#ffffff");
+        }
+        const overlaySubStatus = document.getElementById("overlay-sub-status");
+        if (overlaySubStatus && sub) {
+            overlaySubStatus.innerText = sub;
         }
     }
 
@@ -532,7 +565,7 @@
 
         overlay.style.display = "flex";
         const typeLabel = selectedOrderType === 1 ? "UPI" : "BANK";
-        setStatus(`Running | ₹${selectedMinAmount}-₹${selectedMaxAmount} (${typeLabel})`);
+        setStatus(`Running | ₹${selectedMinAmount} - ₹${selectedMaxAmount} (${typeLabel})`, "ENGINE ACTIVE");
         runMainLoop(selectedMinAmount, selectedMaxAmount, selectedOrderType);
     };
 
@@ -540,7 +573,7 @@
         isRunning = false;
         localStorage.setItem("cyber_auto_running", "false");
         overlay.style.display = "none";
-        setStatus("Stopped");
+        setStatus("System Idle", "STOPPED");
     };
 
     // =========================
@@ -580,7 +613,7 @@
             try {
 
                 const typeLabel = type === 1 ? "UPI" : "BANK";
-                setStatus(`Matching ${typeLabel} [₹${minAmount}-₹${maxAmount}]...`);
+                setStatus(`Scanning Orders | ₹${minAmount} - ₹${maxAmount}`, `MATCHING ${typeLabel}`);
 
                 const reqHeaders = {
                     "Accept": "application/json, text/plain, */*",
@@ -627,7 +660,7 @@
                 );
 
                 if (isMatched) {
-                    setStatus(`MATCHED! Order completed. Refreshing in 2s...`);
+                    setStatus("Order Matched | Refreshing in 2s...", "ORDER COMPLETED");
                     console.log("Match success! Playing ringtone for 2s and refreshing page...");
                     localStorage.setItem("cyber_auto_running", "true");
                     playRingtone(2000);
@@ -638,17 +671,17 @@
 
                 // If not matched, update live status and keep running
                 if (String(data?.code) === "1") {
-                    const statusText = matchResult || data?.msg || "Searching...";
-                    setStatus(`${statusText} [₹${minAmount}-₹${maxAmount}]`);
+                    const statusText = matchResult || data?.msg || "Searching";
+                    setStatus(`${statusText} | ₹${minAmount} - ₹${maxAmount}`, "SCANNING ACTIVE");
                 } else {
-                    setStatus(`${data?.msg || "Matching..."}`);
+                    setStatus(`${data?.msg || "Matching..."}`, "SEARCHING");
                 }
 
                 await sleep(1000);
 
             } catch (err) {
                 console.error("Match loop error:", err);
-                setStatus("Connection error. Retrying...");
+                setStatus("Connection Error | Retrying...", "RECONNECTING");
                 await sleep(1500);
             }
         }
