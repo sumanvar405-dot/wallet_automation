@@ -226,7 +226,7 @@
         panel.id = "cyberPanel";
         panel.innerHTML = `
         <div class="cyber-header"> 
-            ⚡ AUTO BUY PANEL 
+            AUTO BUY PANEL 
         </div> 
     
         <div class="cyber-body"> 
@@ -353,8 +353,8 @@
             statusEl.innerText = msg;
             
             // Check for error or warning keywords
-            const isError = /denied|not found|Error|Stopped|🔴/i.test(msg);
-            const isSuccess = /SUCCESS|🟢/i.test(msg);
+            const isError = /denied|not found|Error|Stopped/i.test(msg);
+            const isSuccess = /SUCCESS|MATCHED|Running/i.test(msg);
             
             if (isError) {
                 statusEl.style.color = "#ff2d55";
@@ -372,7 +372,7 @@
         }
         if (overlayLiveStatus) {
             overlayLiveStatus.innerText = msg;
-            const isError = /denied|not found|Error|Stopped|🔴/i.test(msg);
+            const isError = /denied|not found|Error|Stopped/i.test(msg);
             overlayLiveStatus.style.color = isError ? "#ff2d55" : "#00ff95";
             overlayLiveStatus.style.textShadow = isError ? "0 0 10px #ff2d55aa" : "0 0 10px #00ff95aa";
         }
@@ -532,7 +532,7 @@
 
         overlay.style.display = "flex";
         const typeLabel = selectedOrderType === 1 ? "UPI" : "BANK";
-        setStatus(`🟢 Running | ₹${selectedMinAmount}-₹${selectedMaxAmount} (${typeLabel})`);
+        setStatus(`Running | ₹${selectedMinAmount}-₹${selectedMaxAmount} (${typeLabel})`);
         runMainLoop(selectedMinAmount, selectedMaxAmount, selectedOrderType);
     };
 
@@ -540,7 +540,7 @@
         isRunning = false;
         localStorage.setItem("cyber_auto_running", "false");
         overlay.style.display = "none";
-        setStatus("🔴 Stopped");
+        setStatus("Stopped");
     };
 
     // =========================
@@ -627,7 +627,7 @@
                 );
 
                 if (isMatched) {
-                    setStatus(`🟢 MATCHED! Order completed. Refreshing in 2s...`);
+                    setStatus(`MATCHED! Order completed. Refreshing in 2s...`);
                     console.log("Match success! Playing ringtone for 2s and refreshing page...");
                     localStorage.setItem("cyber_auto_running", "true");
                     playRingtone(2000);
@@ -639,16 +639,16 @@
                 // If not matched, update live status and keep running
                 if (String(data?.code) === "1") {
                     const statusText = matchResult || data?.msg || "Searching...";
-                    setStatus(`⏳ ${statusText} [₹${minAmount}-₹${maxAmount}]`);
+                    setStatus(`${statusText} [₹${minAmount}-₹${maxAmount}]`);
                 } else {
-                    setStatus(`⚠️ ${data?.msg || "Matching..."}`);
+                    setStatus(`${data?.msg || "Matching..."}`);
                 }
 
                 await sleep(1000);
 
             } catch (err) {
                 console.error("Match loop error:", err);
-                setStatus("⚠️ Connection error. Retrying...");
+                setStatus("Connection error. Retrying...");
                 await sleep(1500);
             }
         }
