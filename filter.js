@@ -7,193 +7,220 @@
     style.innerHTML = `
     #cyberPanel{ 
         position:fixed; 
-        right:20px; 
-        bottom:20px; 
-        width:280px; 
+        right:18px; 
+        bottom:18px; 
+        width:250px; 
         z-index:999999; 
-        background:rgba(10, 15, 31, 0.9); 
-        border:1px solid #00f7ff33; 
-        border-radius:16px; 
-        backdrop-filter:blur(16px); 
+        background:rgba(10, 15, 30, 0.94); 
+        border:1px solid rgba(0, 247, 255, 0.22); 
+        border-radius:12px; 
+        backdrop-filter:blur(20px); 
         box-shadow: 
-            0 8px 32px rgba(0, 0, 0, 0.4),
-            0 0 15px #00f7ff22; 
+            0 12px 36px rgba(0, 0, 0, 0.55),
+            0 0 15px rgba(0, 247, 255, 0.08); 
         overflow:hidden; 
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        user-select: none;
     } 
     
     .cyber-header{ 
-        padding:10px 15px; 
-        background:linear-gradient(90deg,#00f7ff15,#7a00ff15); 
+        padding:7px 12px; 
+        background:linear-gradient(90deg, rgba(0, 247, 255, 0.12), rgba(122, 0, 255, 0.12)); 
         color:#00f7ff; 
-        font-size: 11px;
-        letter-spacing: 1px;
-        font-weight:bold; 
-        text-align:center; 
+        font-size: 10.5px;
+        letter-spacing: 0.6px;
+        font-weight:600; 
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         cursor:move; 
-        border-bottom:1px solid #00f7ff22; 
-        user-select:none;
-        text-transform: uppercase;
+        border-bottom:1px solid rgba(0, 247, 255, 0.15); 
+        text-transform: none;
     } 
+
+    .cyber-header-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #00ff95;
+        box-shadow: 0 0 6px #00ff95;
+    }
     
     .cyber-body{ 
-        padding:15px; 
+        padding:9px 11px; 
     } 
+
+    .cyber-grid {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 7px;
+    }
+
+    .cyber-col {
+        flex: 1;
+        min-width: 0;
+    }
     
     .cyber-label{ 
         color:#8defff; 
-        font-size:10px; 
-        margin-bottom:6px; 
+        font-size:9.5px; 
+        margin-bottom:3px; 
         display:block; 
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        opacity: 0.8;
+        text-transform: none;
+        letter-spacing: 0.3px;
+        opacity: 0.85;
+        font-weight: 500;
     } 
     
     .cyber-input{ 
         width:100%; 
         box-sizing:border-box; 
-        padding:8px 12px; 
-        background:rgba(17, 24, 39, 0.5); 
-        border:1px solid #00f7ff33; 
-        border-radius:10px; 
+        padding:5px 8px; 
+        background:rgba(17, 24, 39, 0.6); 
+        border:1px solid rgba(0, 247, 255, 0.25); 
+        border-radius:7px; 
         color:#fff; 
-        font-size:14px; 
+        font-size:12px; 
         outline:none; 
-        transition: all 0.3s ease;
+        transition: all 0.25s ease;
     } 
     
     .cyber-input:focus{ 
-        border-color: #00f7ff88;
-        box-shadow:0 0 12px #00f7ff33; 
+        border-color: #00f7ff;
+        box-shadow:0 0 10px rgba(0, 247, 255, 0.25); 
     } 
     
     .cyber-buttons{ 
         display:flex; 
-        gap:10px; 
-        margin-top:12px; 
+        gap:6px; 
+        margin-top:7px; 
     } 
     
     .cyber-btn{ 
         flex:1; 
         border:none; 
-        padding:8px; 
-        border-radius:8px; 
+        padding:6px 10px; 
+        border-radius:7px; 
         cursor:pointer; 
-        font-size: 11px;
-        font-weight:bold; 
+        font-size: 10.5px;
+        font-weight:600; 
         transition:all .2s ease; 
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        text-transform: none;
+        letter-spacing: 0.3px;
     } 
     
     .start-btn{ 
-        background:#00f7ff; 
-        color:#000; 
+        background:linear-gradient(135deg, #00f7ff, #00c9db); 
+        color:#06111e; 
+        font-weight: 700;
+        box-shadow: 0 2px 10px rgba(0, 247, 255, 0.25);
     } 
     
     .start-btn:hover{ 
         transform:translateY(-1px); 
-        box-shadow:0 0 12px #00f7ff88; 
+        box-shadow:0 4px 14px rgba(0, 247, 255, 0.45); 
     } 
     
     .stop-btn{ 
-        background:rgba(255, 45, 85, 0.2); 
-        color:#ff2d55; 
-        border: 1px solid #ff2d5544;
+        background:rgba(255, 45, 85, 0.15); 
+        color:#ff5277; 
+        border: 1px solid rgba(255, 45, 85, 0.35);
     } 
     
     .stop-btn:hover{ 
-        background:rgba(255, 45, 85, 0.3); 
+        background:rgba(255, 45, 85, 0.25); 
         transform:translateY(-1px); 
-        box-shadow:0 0 12px #ff2d5533; 
+        box-shadow:0 2px 10px rgba(255, 45, 85, 0.25); 
     } 
     
     .cyber-status{ 
-        margin-top:12px; 
+        margin-top:7px; 
         background:rgba(17, 24, 39, 0.6); 
-        border-radius:10px; 
-        padding:8px 12px; 
+        border-radius:7px; 
+        padding:5px 8px; 
         display: flex;
         align-items: center;
         justify-content: center;
         text-align:center; 
         color:#00ff95; 
-        font-size:11px; 
-        border:1px solid #00ff9533; 
-        min-height: 36px;
-        box-shadow: inset 0 0 5px #00ff9511;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        transition: all 0.3s ease;
+        font-size:10px; 
+        border:1px solid rgba(0, 255, 149, 0.25); 
+        min-height: 26px;
+        box-shadow: inset 0 0 5px rgba(0, 255, 149, 0.08);
+        text-transform: none;
+        letter-spacing: 0.2px;
+        transition: all 0.25s ease;
     } 
 
     /* Toggle Switch Styles */
     .toggle-container {
         display: flex;
-        background: #111827;
-        border: 1px solid #00f7ff33;
-        border-radius: 10px;
-        margin-bottom: 12px;
-        padding: 3px;
-        gap: 3px;
+        background: rgba(17, 24, 39, 0.7);
+        border: 1px solid rgba(0, 247, 255, 0.2);
+        border-radius: 7px;
+        margin-bottom: 7px;
+        padding: 2px;
+        gap: 2px;
     }
 
     .toggle-option {
         flex: 1;
-        padding: 6px;
+        padding: 4px 6px;
         text-align: center;
         color: #8defff;
-        font-size: 11px;
-        font-weight: bold;
+        font-size: 10px;
+        font-weight: 500;
         cursor: pointer;
-        border-radius: 6px;
-        transition: .3s;
+        border-radius: 5px;
+        transition: all 0.2s ease;
         user-select: none;
+        white-space: nowrap;
     }
 
     .toggle-option.active {
         background: #00f7ff;
-        color: #000;
-        box-shadow: 0 0 8px #00f7ff66;
+        color: #06111e;
+        font-weight: 600;
+        box-shadow: 0 0 8px rgba(0, 247, 255, 0.35);
     }
 
     #overlay-status-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
-        padding: 32px 50px;
-        background: radial-gradient(circle at top, rgba(16, 26, 56, 0.88), rgba(7, 11, 25, 0.96));
-        border: 1px solid rgba(0, 247, 255, 0.25);
-        border-radius: 20px;
+        gap: 8px;
+        padding: 16px 28px;
+        background: radial-gradient(circle at top, rgba(16, 26, 56, 0.9), rgba(7, 11, 25, 0.96));
+        border: 1px solid rgba(0, 247, 255, 0.22);
+        border-radius: 14px;
         box-shadow: 
-            0 24px 60px rgba(0, 0, 0, 0.6),
-            0 0 30px rgba(0, 247, 255, 0.12);
-        backdrop-filter: blur(20px);
+            0 16px 40px rgba(0, 0, 0, 0.6),
+            0 0 20px rgba(0, 247, 255, 0.08);
+        backdrop-filter: blur(16px);
+        text-transform: none;
     }
 
     .overlay-badge {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 2.5px;
-        color: #00f7ff;
+        gap: 6px;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 1.2px;
+        color: #8defff;
         background: rgba(0, 247, 255, 0.08);
         border: 1px solid rgba(0, 247, 255, 0.2);
-        padding: 5px 14px;
-        border-radius: 20px;
-        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 12px;
+        text-transform: none;
     }
 
     .overlay-badge-dot {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         background: #00ff95;
-        box-shadow: 0 0 8px #00ff95;
+        box-shadow: 0 0 6px #00ff95;
         animation: cyberPulse 2s infinite ease-in-out;
     }
 
@@ -203,21 +230,22 @@
     }
 
     #overlay-live-status {
-        font-size: 20px;
+        font-size: 13px;
         font-weight: 600;
         color: #ffffff;
-        letter-spacing: 1px;
-        margin: 4px 0 0;
+        letter-spacing: 0.3px;
+        margin: 2px 0 0;
         text-align: center;
+        text-transform: none;
     }
 
     #overlay-sub-status {
-        font-size: 11px;
-        letter-spacing: 3px;
+        font-size: 10px;
+        letter-spacing: 0.5px;
         color: #8defff;
-        opacity: 0.65;
-        text-transform: uppercase;
-        font-weight: 600;
+        opacity: 0.75;
+        text-transform: none;
+        font-weight: 500;
     }
     `;
     document.head.appendChild(style);
@@ -244,10 +272,10 @@
         <div id="overlay-status-container">
             <div class="overlay-badge">
                 <span class="overlay-badge-dot"></span>
-                SMART ENGINE ACTIVE
+                Smart engine active
             </div>
-            <div id="overlay-live-status">INITIALIZING</div>
-            <div id="overlay-sub-status">AUTOMATED RANGE MATCH</div>
+            <div id="overlay-live-status">Initializing</div>
+            <div id="overlay-sub-status">Automated match</div>
         </div>`;
         document.body.appendChild(overlay);
     }
@@ -260,32 +288,33 @@
         panel.id = "cyberPanel";
         panel.innerHTML = `
         <div class="cyber-header"> 
-            AUTO BUY PANEL 
+            <span>Auto Buy</span>
+            <span class="cyber-header-dot"></span>
         </div> 
     
         <div class="cyber-body"> 
             
-            <label class="cyber-label"> 
-                Search Mode 
-            </label>
-            <div class="toggle-container" id="modeToggle">
-                <div class="toggle-option active" data-mode="range">RANGE SEARCH</div>
-                <div class="toggle-option" data-mode="fixed">FIXED AMOUNT</div>
-            </div>
+            <div class="cyber-grid">
+                <div class="cyber-col">
+                    <label class="cyber-label">Search Mode</label>
+                    <div class="toggle-container" id="modeToggle">
+                        <div class="toggle-option active" data-mode="range">Range</div>
+                        <div class="toggle-option" data-mode="fixed">Fixed</div>
+                    </div>
+                </div>
 
-            <label class="cyber-label"> 
-                Payment Type 
-            </label>
-            <div class="toggle-container" id="orderTypeToggle">
-                <div class="toggle-option active" data-value="1">UPI</div>
-                <div class="toggle-option" data-value="2">BANK</div>
+                <div class="cyber-col">
+                    <label class="cyber-label">Payment</label>
+                    <div class="toggle-container" id="orderTypeToggle">
+                        <div class="toggle-option active" data-value="1">UPI</div>
+                        <div class="toggle-option" data-value="2">Bank</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Fixed Amount Section -->
-            <div id="fixedSection" style="display:none;">
-                <label class="cyber-label"> 
-                    Amount 
-                </label> 
+            <div id="fixedSection" style="display:none; margin-bottom: 7px;">
+                <label class="cyber-label">Amount</label> 
                 <input 
                     type="text" 
                     id="buyAmount" 
@@ -293,16 +322,13 @@
                     value="2000"
                     min="1" 
                     oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                    style="margin-bottom:12px;"
                 > 
             </div>
 
             <!-- Range Search Section -->
-            <div id="rangeSection">
-                <label class="cyber-label"> 
-                    Select Range 
-                </label> 
-                <div class="toggle-container" id="rangeToggle">
+            <div id="rangeSection" style="margin-bottom: 7px;">
+                <label class="cyber-label">Select Range</label> 
+                <div class="toggle-container" id="rangeToggle" style="margin-bottom:0;">
                     <div class="toggle-option active" data-min="700" data-max="1000">700 - 1000</div>
                     <div class="toggle-option" data-min="1000" data-max="2000">1000 - 2000</div>
                 </div>
@@ -313,14 +339,14 @@
                     id="startBtn" 
                     class="cyber-btn start-btn" 
                 > 
-                    START 
+                    Start 
                 </button> 
     
                 <button 
                     id="stopBtn" 
                     class="cyber-btn stop-btn" 
                 > 
-                    STOP 
+                    Stop 
                 </button> 
             </div> 
     
@@ -446,14 +472,38 @@
         };
     });
 
+    function formatStatusText(str) {
+        if (!str || typeof str !== "string") return "";
+        // Replace all underscores with spaces
+        let s = str.replace(/_/g, " ");
+
+        // Check segments separated by pipe "|"
+        return s.split("|").map(segment => {
+            let trimmed = segment.trim();
+            if (!trimmed) return "";
+
+            // Check if segment is in all-caps (excluding symbols and numbers)
+            const alpha = trimmed.replace(/[^a-zA-Z]/g, "");
+            if (alpha.length > 1 && alpha === alpha.toUpperCase()) {
+                let lower = trimmed.toLowerCase();
+                let converted = lower.replace(/\b[a-z]/g, c => c.toUpperCase());
+                converted = converted.replace(/\bUpi\b/g, "UPI");
+                return converted;
+            }
+            return trimmed;
+        }).join(" | ");
+    }
+
     function setStatus(msg, sub = "") {
-        console.log(msg);
+        const cleanMsg = formatStatusText(msg);
+        const cleanSub = formatStatusText(sub);
+        console.log(cleanMsg);
         if (statusEl) {
-            statusEl.innerText = msg;
+            statusEl.innerText = cleanMsg;
             
             // Check for error or warning keywords
-            const isError = /denied|not found|Error|Stopped|Retry/i.test(msg);
-            const isSuccess = /SUCCESS|MATCHED|Running/i.test(msg);
+            const isError = /denied|not found|error|stopped|retry/i.test(cleanMsg);
+            const isSuccess = /success|matched|running|completed/i.test(cleanMsg);
             
             if (isError) {
                 statusEl.style.color = "#ff4d6d";
@@ -470,14 +520,14 @@
             }
         }
         if (overlayLiveStatus) {
-            overlayLiveStatus.innerText = msg;
-            const isError = /denied|not found|Error|Stopped|Retry/i.test(msg);
-            const isSuccess = /SUCCESS|MATCHED/i.test(msg);
+            overlayLiveStatus.innerText = cleanMsg;
+            const isError = /denied|not found|error|stopped|retry/i.test(cleanMsg);
+            const isSuccess = /success|matched|completed/i.test(cleanMsg);
             overlayLiveStatus.style.color = isError ? "#ff4d6d" : (isSuccess ? "#00ff95" : "#ffffff");
         }
         const overlaySubStatus = document.getElementById("overlay-sub-status");
-        if (overlaySubStatus && sub) {
-            overlaySubStatus.innerText = sub;
+        if (overlaySubStatus && cleanSub) {
+            overlaySubStatus.innerText = cleanSub;
         }
     }
 
@@ -528,31 +578,54 @@
                 ctx.resume();
             }
             const startTime = ctx.currentTime;
-            const endTime = startTime + (durationMs / 1000);
+            const totalDuration = durationMs / 1000;
+            const endTime = startTime + totalDuration;
 
-            // Ringtone cadence: melodic ringing pulses
-            const pulseLen = 0.18;
-            const pulseGap = 0.08;
-            let t = startTime;
-            let toggle = false;
+            const chords = [
+                { time: 0.00, dur: 0.20, freqs: [880, 1108.73, 1318.51] },
+                { time: 0.24, dur: 0.20, freqs: [987.77, 1244.51, 1479.98] },
+                { time: 0.48, dur: 0.20, freqs: [1046.5, 1318.51, 1567.98] },
+                { time: 0.72, dur: 0.22, freqs: [1174.66, 1479.98, 1760.0] },
+                { time: 1.00, dur: 0.20, freqs: [880, 1108.73, 1318.51] },
+                { time: 1.24, dur: 0.20, freqs: [1046.5, 1318.51, 1567.98] },
+                { time: 1.48, dur: 0.48, freqs: [1318.51, 1567.98, 2093.0] }
+            ];
 
-            while (t < endTime - 0.05) {
-                const freqs = toggle ? [784, 1046.5] : [659.25, 880];
-                freqs.forEach(freq => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = "sine";
-                    osc.frequency.setValueAtTime(freq, t);
-                    gain.gain.setValueAtTime(0.25, t);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + pulseLen);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(t);
-                    osc.stop(t + pulseLen);
+            const masterGain = ctx.createGain();
+            masterGain.gain.setValueAtTime(0.8, startTime);
+            masterGain.connect(ctx.destination);
+
+            chords.forEach(chord => {
+                const noteStart = startTime + chord.time;
+                if (noteStart >= endTime) return;
+                const noteDur = Math.min(chord.dur, endTime - noteStart);
+
+                chord.freqs.forEach(freq => {
+                    // Triangle oscillator for bright, crisp presence
+                    const oscTri = ctx.createOscillator();
+                    const gainTri = ctx.createGain();
+                    oscTri.type = "triangle";
+                    oscTri.frequency.setValueAtTime(freq, noteStart);
+                    gainTri.gain.setValueAtTime(0.25, noteStart);
+                    gainTri.gain.exponentialRampToValueAtTime(0.001, noteStart + noteDur);
+                    oscTri.connect(gainTri);
+                    gainTri.connect(masterGain);
+                    oscTri.start(noteStart);
+                    oscTri.stop(noteStart + noteDur);
+
+                    // Sine oscillator for solid fundamental tone
+                    const oscSine = ctx.createOscillator();
+                    const gainSine = ctx.createGain();
+                    oscSine.type = "sine";
+                    oscSine.frequency.setValueAtTime(freq, noteStart);
+                    gainSine.gain.setValueAtTime(0.3, noteStart);
+                    gainSine.gain.exponentialRampToValueAtTime(0.001, noteStart + noteDur);
+                    oscSine.connect(gainSine);
+                    gainSine.connect(masterGain);
+                    oscSine.start(noteStart);
+                    oscSine.stop(noteStart + noteDur);
                 });
-                toggle = !toggle;
-                t += pulseLen + pulseGap;
-            }
+            });
         } catch (e) {
             console.error("Audio playback error:", e);
         }
@@ -646,7 +719,7 @@
             localStorage.setItem("cyber_order_type", String(selectedOrderType));
 
             overlay.style.display = "flex";
-            setStatus(`Running | Fixed ₹${amount} (${typeLabel})`, "ENGINE ACTIVE");
+            setStatus(`Running | Fixed ₹${amount} (${typeLabel})`, "Engine active");
             runLegacyLoop(amount, selectedOrderType);
 
         } else {
@@ -661,7 +734,7 @@
             localStorage.setItem("cyber_order_type", String(selectedOrderType));
 
             overlay.style.display = "flex";
-            setStatus(`Running | ₹${selectedMinAmount} - ₹${selectedMaxAmount} (${typeLabel})`, "ENGINE ACTIVE");
+            setStatus(`Running | ₹${selectedMinAmount} - ₹${selectedMaxAmount} (${typeLabel})`, "Engine active");
             runRangeLoop(selectedMinAmount, selectedMaxAmount, selectedOrderType);
         }
     };
@@ -670,7 +743,7 @@
         isRunning = false;
         localStorage.setItem("cyber_auto_running", "false");
         overlay.style.display = "none";
-        setStatus("System Idle", "STOPPED");
+        setStatus("System idle", "Stopped");
     };
 
     // =========================
@@ -709,8 +782,8 @@
 
             try {
 
-                const typeLabel = type === 1 ? "UPI" : "BANK";
-                setStatus(`Scanning ${typeLabel} Orders | ₹${targetAmount}`, "SEARCHING");
+                const typeLabel = type === 1 ? "UPI" : "Bank";
+                setStatus(`Scanning ${typeLabel} orders | ₹${targetAmount}`, "Searching");
 
                 const listRes = await fetch(
                     "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
@@ -735,7 +808,7 @@
                 const orders = listData?.data?.list || [];
 
                 if (!orders.length) {
-                    setStatus("No orders found...", "WAITING");
+                    setStatus("No orders found...", "Waiting");
                     await sleep(300);
                     continue;
                 }
@@ -745,7 +818,7 @@
                 );
 
                 if (!candidates.length) {
-                    setStatus(`Waiting for order ₹${targetAmount}`, "SEARCHING");
+                    setStatus(`Waiting for order ₹${targetAmount}`, "Searching");
                     await sleep(300);
                     continue;
                 }
@@ -753,7 +826,7 @@
                 for (const order of candidates) {
                     if (!isRunning) break;
 
-                    setStatus(`Trying ₹${order.amount}`, "PROCESSING");
+                    setStatus(`Trying ₹${order.amount}`, "Processing");
 
                     const payload = {
                         amount: order.amount,
@@ -811,7 +884,7 @@
                         const buyData = await buyRes.json();
 
                         if (buyData.code === "1" || buyData.msg === "Success") {
-                            setStatus(`Order Completed | ₹${order.amount}`, "SUCCESS");
+                            setStatus(`Order completed | ₹${order.amount}`, "Success");
                             localStorage.setItem("cyber_auto_running", "true");
                             playRingtone(2000);
                             await sleep(2000);
@@ -828,7 +901,7 @@
 
             } catch (e) {
                 console.error(e);
-                setStatus("Connection Error | Retrying...", "RECONNECTING");
+                setStatus("Connection error | Retrying...", "Reconnecting");
                 await sleep(500);
             }
         }
@@ -842,8 +915,8 @@
 
             try {
 
-                const typeLabel = type === 1 ? "UPI" : "BANK";
-                setStatus(`Scanning Orders | ₹${minAmount} - ₹${maxAmount}`, `MATCHING ${typeLabel}`);
+                const typeLabel = type === 1 ? "UPI" : "Bank";
+                setStatus(`Scanning orders | ₹${minAmount} - ₹${maxAmount}`, `Matching ${typeLabel}`);
 
                 const reqHeaders = {
                     "Accept": "application/json, text/plain, */*",
@@ -890,7 +963,7 @@
                 );
 
                 if (isMatched) {
-                    setStatus("Order Matched | Refreshing in 2s...", "ORDER COMPLETED");
+                    setStatus("Order matched | Refreshing in 2s...", "Order completed");
                     console.log("Match success! Playing ringtone for 2s and refreshing page...");
                     localStorage.setItem("cyber_auto_running", "true");
                     playRingtone(2000);
@@ -901,17 +974,17 @@
 
                 // If not matched, update live status and keep running
                 if (String(data?.code) === "1") {
-                    const statusText = matchResult || data?.msg || "Searching";
-                    setStatus(`${statusText} | ₹${minAmount} - ₹${maxAmount}`, "SCANNING ACTIVE");
+                    const statusText = matchResult ? matchResult.replace(/_/g, " ") : (data?.msg || "Searching");
+                    setStatus(`${statusText} | ₹${minAmount} - ₹${maxAmount}`, "Scanning active");
                 } else {
-                    setStatus(`${data?.msg || "Matching..."}`, "SEARCHING");
+                    setStatus(`${data?.msg || "Matching..."}`, "Searching");
                 }
 
                 await sleep(1000);
 
             } catch (err) {
                 console.error("Match loop error:", err);
-                setStatus("Connection Error | Retrying...", "RECONNECTING");
+                setStatus("Connection error | Retrying...", "Reconnecting");
                 await sleep(1500);
             }
         }
