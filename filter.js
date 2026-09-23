@@ -774,19 +774,57 @@
         });
     })();
 
-    // =========================
-    // FIXED AMOUNT LOOP (LEGACY)
-    // =========================
+    // ===============================================
+    // FIXED AMOUNT LOOP (PARALLEL SEARCH & FAST BOOK)
+    // ===============================================
     async function runLegacyLoop(targetAmount, type) {
-        while (isRunning) {
+        const typeLabel = type === 1 ? "UPI" : "Bank";
+        const processedOrders = new Set();
+        let isOrderMatched = false;
+
+        async function attemptBook(order) {
+            if (!isRunning || isOrderMatched) return;
+            const orderId = order.platformOrder;
+            if (!orderId || processedOrders.has(orderId)) return;
+            processedOrders.add(orderId);
+
+            console.log(`[FastBook] Candidate found! Attempting order ${orderId} | ₹${order.amount}`);
+            setStatus(`Trying ₹${order.amount}`, "Processing");
 
             try {
+                const payload = {
+                    amount: order.amount,
+                    platformOrder: order.platformOrder,
+                    payType: order.payType,
+                    orderType: order.orderType
+                };
 
-                const typeLabel = type === 1 ? "UPI" : "Bank";
-                setStatus(`Scanning ${typeLabel} orders | ₹${targetAmount}`, "Searching");
+                const beforeBuyRes = await fetch(
+                    "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/beforeBuy", {
+                        method: "POST",
+                        headers: {
+                            "accept": "application/json, text/plain, */*",
+                            "content-type": "application/json",
+                            "authorization": `Bearer ${token}`,
+                            "deviceId": "undefined",
+                            "deviceType": "3",
+                            "page": "Arb",
+                            "deviceCode": deviceCode
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
 
-                const listRes = await fetch(
-                    "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
+                const beforeBuyData = await beforeBuyRes.json();
+                if (beforeBuyData.code !== "1") {
+                    console.log(`[FastBook] beforeBuy not accepted for ${orderId}:`, beforeBuyData);
+                    return;
+                }
+
+                if (!isRunning || isOrderMatched) return;
+
+                const buyRes = await fetch(
+                    "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buy", {
                         method: "POST",
                         headers: {
                             "accept": "application/json, text/plain, */*",
@@ -798,113 +836,95 @@
                             "deviceCode": deviceCode
                         },
                         body: JSON.stringify({
-                            orderType: type,
-                            pageNo: 1
+                            amount: order.amount,
+                            platformOrder: order.platformOrder,
+                            payType: order.payType,
+                            orderType: order.orderType,
+                            buyBankCode: "moneyView",
+                            buyerKycId: ""
                         })
                     }
                 );
 
-                const listData = await listRes.json();
-                const orders = listData?.data?.list || [];
+                const buyData = await buyRes.json();
+                console.log(`[FastBook] buy result for ${orderId}:`, buyData);
 
-                if (!orders.length) {
-                    setStatus("No orders found...", "Waiting");
-                    await sleep(300);
-                    continue;
+                if (buyData.code === "1" || buyData.msg === "Success") {
+                    isOrderMatched = true;
+                    isRunning = false;
+                    setStatus(`Order completed | ₹${order.amount}`, "Success");
+                    console.log(`[FastBook] Order booked successfully! Playing ringtone for 2s and refreshing...`);
+                    localStorage.setItem("cyber_auto_running", "true");
+                    playRingtone(2000);
+                    await sleep(2000);
+                    location.reload();
                 }
 
-                const candidates = orders.filter(
-                    item => Number(item.amount) === targetAmount
-                );
-
-                if (!candidates.length) {
-                    setStatus(`Waiting for order ₹${targetAmount}`, "Searching");
-                    await sleep(300);
-                    continue;
-                }
-
-                for (const order of candidates) {
-                    if (!isRunning) break;
-
-                    setStatus(`Trying ₹${order.amount}`, "Processing");
-
-                    const payload = {
-                        amount: order.amount,
-                        platformOrder: order.platformOrder,
-                        payType: order.payType,
-                        orderType: order.orderType
-                    };
-
-                    try {
-                        const beforeBuyRes = await fetch(
-                            "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/beforeBuy", {
-                                method: "POST",
-                                headers: {
-                                    "accept": "application/json, text/plain, */*",
-                                    "content-type": "application/json",
-                                    "authorization": `Bearer ${token}`,
-                                    "deviceId": "undefined",
-                                    "deviceType": "3",
-                                    "page": "Arb",
-                                    "deviceCode": deviceCode
-                                },
-                                body: JSON.stringify(payload)
-                            }
-                        );
-
-                        const beforeBuyData = await beforeBuyRes.json();
-
-                        if (beforeBuyData.code !== "1") {
-                            continue;
-                        }
-
-                        const buyRes = await fetch(
-                            "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buy", {
-                                method: "POST",
-                                headers: {
-                                    "accept": "application/json, text/plain, */*",
-                                    "content-type": "application/json",
-                                    "authorization": `Bearer ${token}`,
-                                    "deviceId": "undefined",
-                                    "deviceType": "3",
-                                    "page": "Arb",
-                                    "deviceCode": deviceCode
-                                },
-                                body: JSON.stringify({
-                                    amount: order.amount,
-                                    platformOrder: order.platformOrder,
-                                    payType: order.payType,
-                                    orderType: order.orderType,
-                                    buyBankCode: "moneyView",
-                                    buyerKycId: ""
-                                })
-                            }
-                        );
-
-                        const buyData = await buyRes.json();
-
-                        if (buyData.code === "1" || buyData.msg === "Success") {
-                            setStatus(`Order completed | ₹${order.amount}`, "Success");
-                            localStorage.setItem("cyber_auto_running", "true");
-                            playRingtone(2000);
-                            await sleep(2000);
-                            location.reload();
-                            return;
-                        }
-
-                    } catch (err) {
-                        console.error(err);
-                    }
-                }
-
-                await sleep(300);
-
-            } catch (e) {
-                console.error(e);
-                setStatus("Connection error | Retrying...", "Reconnecting");
-                await sleep(500);
+            } catch (err) {
+                console.error("[FastBook] Booking error:", err);
             }
         }
+
+        async function fetchWorker(workerId) {
+            while (isRunning && !isOrderMatched) {
+                try {
+                    setStatus(`Scanning ${typeLabel} orders | ₹${targetAmount}`, "Searching");
+
+                    const listRes = await fetch(
+                        "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
+                            method: "POST",
+                            headers: {
+                                "accept": "application/json, text/plain, */*",
+                                "content-type": "application/json",
+                                "authorization": `Bearer ${token}`,
+                                "deviceId": "undefined",
+                                "deviceType": "3",
+                                "page": "Arb",
+                                "deviceCode": deviceCode
+                            },
+                            body: JSON.stringify({
+                                orderType: type,
+                                pageNo: 1
+                            })
+                        }
+                    );
+
+                    const listData = await listRes.json();
+                    const orders = listData?.data?.list || [];
+
+                    if (!orders.length) {
+                        setStatus("No orders found...", "Waiting");
+                    } else {
+                        const candidates = orders.filter(
+                            item => Number(item.amount) === targetAmount && !processedOrders.has(item.platformOrder)
+                        );
+
+                        if (candidates.length > 0) {
+                            // Non-blocking parallel booking: search stream stays active without waiting
+                            for (const candidate of candidates) {
+                                if (isOrderMatched) break;
+                                attemptBook(candidate);
+                            }
+                        }
+                    }
+
+                    // Keep rapid parallel stream active with 250ms cadence per worker
+                    await sleep(250);
+
+                } catch (e) {
+                    console.error(`[SearchWorker ${workerId}] error:`, e);
+                    setStatus("Connection error | Retrying...", "Reconnecting");
+                    await sleep(500);
+                }
+            }
+        }
+
+        // Run 2 staggered search workers concurrently for zero-delay continuous searching
+        const w1 = fetchWorker(1);
+        await sleep(125);
+        const w2 = fetchWorker(2);
+
+        await Promise.all([w1, w2]);
     }
 
     // =========================
