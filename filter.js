@@ -460,7 +460,7 @@
     // =========================
     let token = null;
     let memberId = "11603832";
-    let buyerKycId = 5315895;
+    let buyerKycId = "";
 
     try {
 
@@ -495,11 +495,6 @@
         const foundMemberId = userInfo?.value?.memberId || userInfo?.value?.memberld || userInfo?.memberId;
         if (foundMemberId) {
             memberId = String(foundMemberId);
-        }
-
-        const foundKycId = userInfo?.value?.buyerKycId || userInfo?.value?.kycId || userInfo?.buyerKycId || localStorage.getItem("buyerKycId");
-        if (foundKycId) {
-            buyerKycId = Number(foundKycId) || 5315895;
         }
 
     } catch (e) {
@@ -603,7 +598,7 @@
                     minAmount: minAmount,
                     orderType: type,
                     buyBankCode: "moneyView",
-                    buyerKycId: buyerKycId
+                    buyerKycId: ""
                 };
 
                 const response = await fetch(
