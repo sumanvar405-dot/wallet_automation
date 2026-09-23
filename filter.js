@@ -266,6 +266,14 @@
         <div class="cyber-body"> 
             
             <label class="cyber-label"> 
+                Search Mode 
+            </label>
+            <div class="toggle-container" id="modeToggle">
+                <div class="toggle-option active" data-mode="range">RANGE SEARCH</div>
+                <div class="toggle-option" data-mode="fixed">FIXED AMOUNT</div>
+            </div>
+
+            <label class="cyber-label"> 
                 Payment Type 
             </label>
             <div class="toggle-container" id="orderTypeToggle">
@@ -273,12 +281,31 @@
                 <div class="toggle-option" data-value="2">BANK</div>
             </div>
 
-            <label class="cyber-label"> 
-                Select Range 
-            </label> 
-            <div class="toggle-container" id="rangeToggle">
-                <div class="toggle-option active" data-min="700" data-max="1000">700 - 1000</div>
-                <div class="toggle-option" data-min="1000" data-max="2000">1000 - 2000</div>
+            <!-- Fixed Amount Section -->
+            <div id="fixedSection" style="display:none;">
+                <label class="cyber-label"> 
+                    Amount 
+                </label> 
+                <input 
+                    type="text" 
+                    id="buyAmount" 
+                    class="cyber-input" 
+                    value="2000"
+                    min="1" 
+                    oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                    style="margin-bottom:12px;"
+                > 
+            </div>
+
+            <!-- Range Search Section -->
+            <div id="rangeSection">
+                <label class="cyber-label"> 
+                    Select Range 
+                </label> 
+                <div class="toggle-container" id="rangeToggle">
+                    <div class="toggle-option active" data-min="700" data-max="1000">700 - 1000</div>
+                    <div class="toggle-option" data-min="1000" data-max="2000">1000 - 2000</div>
+                </div>
             </div>
     
             <div class="cyber-buttons"> 
@@ -311,17 +338,50 @@
     const statusEl = document.getElementById("cyberStatus");
     const startBtn = document.getElementById("startBtn");
     const stopBtn = document.getElementById("stopBtn");
+    const modeToggle = document.getElementById("modeToggle");
     const orderTypeToggle = document.getElementById("orderTypeToggle");
     const rangeToggle = document.getElementById("rangeToggle");
+    const fixedSection = document.getElementById("fixedSection");
+    const rangeSection = document.getElementById("rangeSection");
+    const amountInput = document.getElementById("buyAmount");
 
     let isRunning = false;
+    let selectedMode = "range"; // "fixed" or "range"
     let selectedOrderType = 1;
     let selectedMinAmount = 700;
     let selectedMaxAmount = 1000;
     let isPremiumMember = false;
 
+    function applyModeUI(mode) {
+        selectedMode = mode;
+        if (mode === "fixed") {
+            fixedSection.style.display = "block";
+            rangeSection.style.display = "none";
+        } else {
+            fixedSection.style.display = "none";
+            rangeSection.style.display = "block";
+        }
+        modeToggle.querySelectorAll(".toggle-option").forEach(opt => {
+            if (opt.dataset.mode === mode) {
+                opt.classList.add("active");
+            } else {
+                opt.classList.remove("active");
+            }
+        });
+    }
+
     // Restore saved selections
     try {
+        const savedMode = localStorage.getItem("cyber_search_mode");
+        if (savedMode === "fixed" || savedMode === "range") {
+            applyModeUI(savedMode);
+        }
+
+        const savedFixedAmount = localStorage.getItem("cyber_fixed_amount");
+        if (savedFixedAmount && amountInput) {
+            amountInput.value = savedFixedAmount;
+        }
+
         const savedOrderType = localStorage.getItem("cyber_order_type");
         if (savedOrderType) {
             selectedOrderType = Number(savedOrderType) || 1;
@@ -349,6 +409,16 @@
     } catch (e) {
         console.log("Error restoring settings:", e);
     }
+
+    // Toggle logic for Search Mode
+    modeToggle.querySelectorAll(".toggle-option").forEach(opt => {
+        opt.onclick = () => {
+            const mode = opt.dataset.mode;
+            applyModeUI(mode);
+            localStorage.setItem("cyber_search_mode", mode);
+            console.log("Selected Search Mode:", mode);
+        };
+    });
 
     // Toggle logic for Payment Type
     orderTypeToggle.querySelectorAll(".toggle-option").forEach(opt => {
@@ -555,18 +625,45 @@
     startBtn.onclick = () => {
         if (isRunning) return;
 
-        isRunning = true;
-        localStorage.setItem("cyber_auto_running", "true");
-        localStorage.setItem("cyber_selected_range", JSON.stringify({
-            min: selectedMinAmount,
-            max: selectedMaxAmount
-        }));
-        localStorage.setItem("cyber_order_type", String(selectedOrderType));
-
-        overlay.style.display = "flex";
         const typeLabel = selectedOrderType === 1 ? "UPI" : "BANK";
-        setStatus(`Running | ₹${selectedMinAmount} - ₹${selectedMaxAmount} (${typeLabel})`, "ENGINE ACTIVE");
-        runMainLoop(selectedMinAmount, selectedMaxAmount, selectedOrderType);
+
+        if (selectedMode === "fixed") {
+            const amount = Number(amountInput.value);
+            if (!amount) {
+                setStatus("Enter amount");
+                return;
+            }
+
+            if (!isPremiumMember && amount < 2000) {
+                setStatus("Minimum order value is 2000");
+                return;
+            }
+
+            isRunning = true;
+            localStorage.setItem("cyber_auto_running", "true");
+            localStorage.setItem("cyber_search_mode", "fixed");
+            localStorage.setItem("cyber_fixed_amount", String(amount));
+            localStorage.setItem("cyber_order_type", String(selectedOrderType));
+
+            overlay.style.display = "flex";
+            setStatus(`Running | Fixed ₹${amount} (${typeLabel})`, "ENGINE ACTIVE");
+            runLegacyLoop(amount, selectedOrderType);
+
+        } else {
+            // Range Search Mode
+            isRunning = true;
+            localStorage.setItem("cyber_auto_running", "true");
+            localStorage.setItem("cyber_search_mode", "range");
+            localStorage.setItem("cyber_selected_range", JSON.stringify({
+                min: selectedMinAmount,
+                max: selectedMaxAmount
+            }));
+            localStorage.setItem("cyber_order_type", String(selectedOrderType));
+
+            overlay.style.display = "flex";
+            setStatus(`Running | ₹${selectedMinAmount} - ₹${selectedMaxAmount} (${typeLabel})`, "ENGINE ACTIVE");
+            runRangeLoop(selectedMinAmount, selectedMaxAmount, selectedOrderType);
+        }
     };
 
     stopBtn.onclick = () => {
@@ -605,9 +702,142 @@
     })();
 
     // =========================
-    // MAIN LOOP
+    // FIXED AMOUNT LOOP (LEGACY)
     // =========================
-    async function runMainLoop(minAmount, maxAmount, type) {
+    async function runLegacyLoop(targetAmount, type) {
+        while (isRunning) {
+
+            try {
+
+                const typeLabel = type === 1 ? "UPI" : "BANK";
+                setStatus(`Scanning ${typeLabel} Orders | ₹${targetAmount}`, "SEARCHING");
+
+                const listRes = await fetch(
+                    "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
+                        method: "POST",
+                        headers: {
+                            "accept": "application/json, text/plain, */*",
+                            "content-type": "application/json",
+                            "authorization": `Bearer ${token}`,
+                            "deviceId": "undefined",
+                            "deviceType": "3",
+                            "page": "Arb",
+                            "deviceCode": deviceCode
+                        },
+                        body: JSON.stringify({
+                            orderType: type,
+                            pageNo: 1
+                        })
+                    }
+                );
+
+                const listData = await listRes.json();
+                const orders = listData?.data?.list || [];
+
+                if (!orders.length) {
+                    setStatus("No orders found...", "WAITING");
+                    await sleep(300);
+                    continue;
+                }
+
+                const candidates = orders.filter(
+                    item => Number(item.amount) === targetAmount
+                );
+
+                if (!candidates.length) {
+                    setStatus(`Waiting for order ₹${targetAmount}`, "SEARCHING");
+                    await sleep(300);
+                    continue;
+                }
+
+                for (const order of candidates) {
+                    if (!isRunning) break;
+
+                    setStatus(`Trying ₹${order.amount}`, "PROCESSING");
+
+                    const payload = {
+                        amount: order.amount,
+                        platformOrder: order.platformOrder,
+                        payType: order.payType,
+                        orderType: order.orderType
+                    };
+
+                    try {
+                        const beforeBuyRes = await fetch(
+                            "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/beforeBuy", {
+                                method: "POST",
+                                headers: {
+                                    "accept": "application/json, text/plain, */*",
+                                    "content-type": "application/json",
+                                    "authorization": `Bearer ${token}`,
+                                    "deviceId": "undefined",
+                                    "deviceType": "3",
+                                    "page": "Arb",
+                                    "deviceCode": deviceCode
+                                },
+                                body: JSON.stringify(payload)
+                            }
+                        );
+
+                        const beforeBuyData = await beforeBuyRes.json();
+
+                        if (beforeBuyData.code !== "1") {
+                            continue;
+                        }
+
+                        const buyRes = await fetch(
+                            "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buy", {
+                                method: "POST",
+                                headers: {
+                                    "accept": "application/json, text/plain, */*",
+                                    "content-type": "application/json",
+                                    "authorization": `Bearer ${token}`,
+                                    "deviceId": "undefined",
+                                    "deviceType": "3",
+                                    "page": "Arb",
+                                    "deviceCode": deviceCode
+                                },
+                                body: JSON.stringify({
+                                    amount: order.amount,
+                                    platformOrder: order.platformOrder,
+                                    payType: order.payType,
+                                    orderType: order.orderType,
+                                    buyBankCode: "moneyView",
+                                    buyerKycId: ""
+                                })
+                            }
+                        );
+
+                        const buyData = await buyRes.json();
+
+                        if (buyData.code === "1" || buyData.msg === "Success") {
+                            setStatus(`Order Completed | ₹${order.amount}`, "SUCCESS");
+                            localStorage.setItem("cyber_auto_running", "true");
+                            playRingtone(2000);
+                            await sleep(2000);
+                            location.reload();
+                            return;
+                        }
+
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+
+                await sleep(300);
+
+            } catch (e) {
+                console.error(e);
+                setStatus("Connection Error | Retrying...", "RECONNECTING");
+                await sleep(500);
+            }
+        }
+    }
+
+    // =========================
+    // RANGE SEARCH LOOP (SMART)
+    // =========================
+    async function runRangeLoop(minAmount, maxAmount, type) {
         while (isRunning) {
 
             try {
@@ -691,7 +921,7 @@
     // AUTO-RESUME CHECK
     // =========================
     if (localStorage.getItem("cyber_auto_running") === "true") {
-        console.log("Auto-run is enabled. Starting smart range buy in 800ms...");
+        console.log("Auto-run is enabled. Starting automation in 800ms...");
         setTimeout(() => {
             if (localStorage.getItem("cyber_auto_running") === "true" && !isRunning) {
                 startBtn.click();
