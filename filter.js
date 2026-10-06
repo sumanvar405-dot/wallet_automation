@@ -9,18 +9,19 @@
         position: fixed;
         right: 20px;
         bottom: 20px;
-        width: 35px;
-        height: 35px;
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 35%, rgba(20, 32, 58, 0.96), rgba(8, 12, 22, 0.98));
-        border: 1.5px solid rgba(0, 247, 255, 0.45);
+        background: radial-gradient(circle at 35% 30%, #1f365d 0%, #0d172e 60%, #040814 100%);
+        border: 1.5px solid rgba(0, 247, 255, 0.5);
         box-shadow: 
-            0 6px 18px rgba(0, 0, 0, 0.65),
-            0 0 12px rgba(0, 247, 255, 0.25),
-            inset 0 1px 2px rgba(255, 255, 255, 0.25);
+            0 8px 24px rgba(0, 0, 0, 0.75),
+            0 0 16px rgba(0, 247, 255, 0.35),
+            inset 0 1.5px 2px rgba(255, 255, 255, 0.35),
+            inset 0 -2px 4px rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(10px);
         z-index: 999999;
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
         cursor: grab;
@@ -30,87 +31,97 @@
     }
 
     #cyberFloatingDot:hover {
-        transform: scale(1.08);
+        transform: scale(1.1);
         border-color: #00f7ff;
         box-shadow: 
-            0 8px 22px rgba(0, 0, 0, 0.7),
-            0 0 16px rgba(0, 247, 255, 0.45),
-            inset 0 1px 3px rgba(255, 255, 255, 0.35);
+            0 10px 28px rgba(0, 0, 0, 0.8),
+            0 0 22px rgba(0, 247, 255, 0.6),
+            inset 0 1.5px 3px rgba(255, 255, 255, 0.5),
+            inset 0 -2px 4px rgba(0, 0, 0, 0.7);
     }
 
     #cyberFloatingDot.is-dragging {
         cursor: grabbing;
-        transform: scale(1.05);
+        transform: scale(1.06);
     }
 
-    .cyber-floating-core {
-        width: 8px;
-        height: 8px;
+    .cyber-orb-shine {
+        position: absolute;
+        top: 4px;
+        left: 7px;
+        width: 14px;
+        height: 7px;
         border-radius: 50%;
-        background: #00f7ff;
-        box-shadow: 0 0 8px #00f7ff;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+        transform: rotate(-25deg);
+        pointer-events: none;
+    }
+
+    .cyber-floating-icon {
+        display: block;
+        filter: drop-shadow(0 0 5px rgba(0, 247, 255, 0.85));
         transition: all 0.25s ease;
     }
 
-    #cyberFloatingDot.running .cyber-floating-core {
-        background: #00ff95;
-        box-shadow: 0 0 10px #00ff95;
-        animation: cyberCorePulse 1.2s infinite ease-in-out;
+    #cyberFloatingDot.running .cyber-floating-icon {
+        stroke: #00ff95;
+        filter: drop-shadow(0 0 7px rgba(0, 255, 149, 0.95));
+        animation: cyberIconPulse 1.2s infinite ease-in-out;
     }
 
     .cyber-floating-ring {
         position: absolute;
-        inset: -3px;
+        inset: -4px;
         border-radius: 50%;
-        border: 1px solid rgba(0, 247, 255, 0.35);
+        border: 1.5px solid rgba(0, 247, 255, 0.4);
         opacity: 0.6;
         pointer-events: none;
     }
 
     #cyberFloatingDot.running .cyber-floating-ring {
-        border-color: rgba(0, 255, 149, 0.7);
-        animation: cyberRingPulse 1.8s infinite ease-out;
+        border-color: rgba(0, 255, 149, 0.75);
+        animation: cyberRingPulse 1.6s infinite ease-out;
     }
 
-    @keyframes cyberCorePulse {
+    @keyframes cyberIconPulse {
         0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.25); opacity: 0.7; }
+        50% { transform: scale(1.15); opacity: 0.8; }
     }
 
     @keyframes cyberRingPulse {
-        0% { transform: scale(0.9); opacity: 0.8; }
-        50% { transform: scale(1.25); opacity: 0.2; }
-        100% { transform: scale(1.4); opacity: 0; }
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1.2); opacity: 0.25; }
+        100% { transform: scale(1.35); opacity: 0; }
     }
 
     #cyberPanel { 
         position: fixed; 
         right: 20px; 
         bottom: 20px; 
-        width: 264px; 
+        width: 250px; 
         z-index: 999999; 
         background: linear-gradient(165deg, rgba(13, 19, 34, 0.96) 0%, rgba(7, 10, 20, 0.98) 100%); 
         border: 1px solid rgba(0, 247, 255, 0.22); 
-        border-radius: 14px; 
+        border-radius: 12px; 
         backdrop-filter: blur(12px); 
         box-shadow: 
-            0 18px 42px -6px rgba(0, 0, 0, 0.75),
-            0 0 20px rgba(0, 247, 255, 0.1),
+            0 16px 36px -6px rgba(0, 0, 0, 0.75),
+            0 0 18px rgba(0, 247, 255, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.12); 
         overflow: hidden; 
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
         user-select: none;
-        display: none;
+        display: block;
         animation: cyberPanelFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     } 
 
     @keyframes cyberPanelFadeIn {
-        from { opacity: 0; transform: scale(0.96) translateY(6px); }
+        from { opacity: 0; transform: scale(0.96) translateY(5px); }
         to { opacity: 1; transform: scale(1) translateY(0); }
     }
     
     .cyber-header { 
-        padding: 9px 12px; 
+        padding: 7px 10px; 
         background: linear-gradient(90deg, rgba(0, 247, 255, 0.12), rgba(122, 0, 255, 0.08)); 
         color: #00f7ff; 
         border-bottom: 1px solid rgba(0, 247, 255, 0.15); 
@@ -118,24 +129,24 @@
         align-items: center;
         justify-content: space-between;
         user-select: none;
-    }
+    } 
 
     .cyber-header-title {
         display: flex;
         align-items: center;
-        gap: 7px;
-        font-size: 11.5px;
+        gap: 6px;
+        font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
         color: #00f7ff;
     }
 
     .cyber-header-dot {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         background: #00ff95;
-        box-shadow: 0 0 7px #00ff95;
+        box-shadow: 0 0 6px #00ff95;
         animation: cyberPulse 2s infinite ease-in-out;
     }
 
@@ -143,12 +154,14 @@
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(0, 247, 255, 0.18);
         color: #8defff;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: bold;
         line-height: 1;
         cursor: pointer;
-        padding: 2px 7px;
-        border-radius: 5px;
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        border-radius: 4px;
         transition: all 0.15s ease;
         display: flex;
         align-items: center;
@@ -159,25 +172,25 @@
         background: rgba(0, 247, 255, 0.18);
         color: #ffffff;
         border-color: #00f7ff;
-        box-shadow: 0 0 8px rgba(0, 247, 255, 0.3);
+        box-shadow: 0 0 6px rgba(0, 247, 255, 0.3);
     }
     
     .cyber-body { 
-        padding: 10px 12px 12px; 
+        padding: 7px 9px 9px; 
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
     } 
 
     .cyber-section {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
     }
 
     .cyber-grid {
         display: flex;
-        gap: 8px;
+        gap: 6px;
     }
 
     .cyber-col {
@@ -185,27 +198,27 @@
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
     }
     
     .cyber-label { 
         color: #8defff; 
-        font-size: 9.5px; 
+        font-size: 8.5px; 
         font-weight: 600;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
         opacity: 0.85;
     } 
     
     .cyber-input { 
         width: 100%; 
         box-sizing: border-box; 
-        height: 32px;
-        padding: 0 9px; 
+        height: 28px;
+        padding: 0 8px; 
         background: rgba(9, 14, 26, 0.75); 
         border: 1px solid rgba(0, 247, 255, 0.2); 
-        border-radius: 8px; 
+        border-radius: 6px; 
         color: #fff; 
-        font-size: 12.5px; 
+        font-size: 12px; 
         font-weight: 600;
         font-family: inherit;
         outline: none; 
@@ -215,22 +228,22 @@
     .cyber-input:focus { 
         border-color: #00f7ff;
         background: rgba(12, 18, 36, 0.85);
-        box-shadow: 0 0 10px rgba(0, 247, 255, 0.3); 
+        box-shadow: 0 0 8px rgba(0, 247, 255, 0.3); 
     } 
     
     .cyber-buttons { 
         display: flex; 
-        gap: 8px; 
+        gap: 6px; 
         margin-top: 2px; 
     } 
     
     .cyber-btn { 
         border: none; 
-        height: 32px;
-        padding: 0 10px; 
-        border-radius: 8px; 
+        height: 29px;
+        padding: 0 8px; 
+        border-radius: 6px; 
         cursor: pointer; 
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 700; 
         letter-spacing: 0.4px;
         transition: transform 0.15s ease, box-shadow 0.15s ease; 
@@ -245,12 +258,12 @@
         background: linear-gradient(135deg, #00f7ff 0%, #00e5a3 100%); 
         color: #031521; 
         font-weight: 800;
-        box-shadow: 0 3px 12px rgba(0, 247, 255, 0.3);
+        box-shadow: 0 2px 10px rgba(0, 247, 255, 0.3);
     } 
     
     .start-btn:hover { 
         transform: translateY(-1px); 
-        box-shadow: 0 5px 16px rgba(0, 247, 255, 0.5); 
+        box-shadow: 0 4px 14px rgba(0, 247, 255, 0.5); 
     } 
     
     .start-btn:active {
@@ -267,7 +280,7 @@
     .stop-btn:hover { 
         background: rgba(255, 45, 85, 0.2); 
         border-color: rgba(255, 45, 85, 0.6);
-        box-shadow: 0 3px 12px rgba(255, 45, 85, 0.25); 
+        box-shadow: 0 2px 10px rgba(255, 45, 85, 0.25); 
         transform: translateY(-1px); 
     } 
 
@@ -278,18 +291,18 @@
     .cyber-status { 
         margin-top: 1px; 
         background: rgba(8, 12, 22, 0.75); 
-        border-radius: 8px; 
-        padding: 6px 10px; 
+        border-radius: 6px; 
+        padding: 4px 8px; 
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center; 
         color: #00ff95; 
-        font-size: 10.5px; 
+        font-size: 10px; 
         font-weight: 600;
         border: 1px solid rgba(0, 255, 149, 0.25); 
-        min-height: 28px;
-        box-shadow: inset 0 0 6px rgba(0, 255, 149, 0.06);
+        min-height: 25px;
+        box-shadow: inset 0 0 5px rgba(0, 255, 149, 0.06);
         letter-spacing: 0.3px;
         transition: color 0.2s ease, border-color 0.2s ease;
     } 
@@ -299,20 +312,20 @@
         display: flex;
         background: rgba(8, 12, 22, 0.75);
         border: 1px solid rgba(0, 247, 255, 0.16);
-        border-radius: 7px;
+        border-radius: 6px;
         padding: 2px;
         gap: 2px;
     }
 
     .toggle-option {
         flex: 1;
-        padding: 5px 8px;
+        padding: 4px 6px;
         text-align: center;
         color: #8defff;
-        font-size: 10.5px;
+        font-size: 10px;
         font-weight: 600;
         cursor: pointer;
-        border-radius: 5px;
+        border-radius: 4px;
         transition: all 0.15s ease;
         user-select: none;
         white-space: nowrap;
@@ -327,7 +340,7 @@
         background: linear-gradient(135deg, #00f7ff, #00c9db);
         color: #031521;
         font-weight: 700;
-        box-shadow: 0 2px 8px rgba(0, 247, 255, 0.35);
+        box-shadow: 0 2px 6px rgba(0, 247, 255, 0.35);
     }
 
     #overlay-status-container {
@@ -435,7 +448,10 @@
         floatingDot.id = "cyberFloatingDot";
         floatingDot.title = "Drag to move | Click to open Auto Buy";
         floatingDot.innerHTML = `
-            <span class="cyber-floating-core"></span>
+            <div class="cyber-orb-shine"></div>
+            <svg class="cyber-floating-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#00f7ff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
             <span class="cyber-floating-ring"></span>
         `;
         document.body.appendChild(floatingDot);
@@ -560,7 +576,6 @@
     function hidePanel() {
         panel.style.display = "none";
         floatingDot.style.display = "flex";
-        localStorage.setItem("cyber_panel_visible", "false");
     }
 
     if (minBtn) minBtn.onclick = (e) => {
@@ -568,11 +583,8 @@
         hidePanel();
     };
 
-    if (localStorage.getItem("cyber_panel_visible") === "false") {
-        hidePanel();
-    } else {
-        showPanel();
-    }
+    // By default, the card is always shown; if user minimizes, the dot ball shows
+    showPanel();
 
     const statusEl = document.getElementById("cyberStatus");
     const startBtn = document.getElementById("startBtn");
@@ -1285,7 +1297,7 @@
         const typeLabel = type === 1 ? "UPI" : "BANK";
         let isOrderMatched = false;
 
-        async function rangeWorker(workerId) {
+        async function rangeWorker() {
             while (isRunning && !isOrderMatched) {
                 try {
                     setStatus(`Scanning orders | ₹${minAmount}-${maxAmount}`, `Matching ${typeLabel}`);
@@ -1349,22 +1361,19 @@
                         }
                     }
 
-                    await sleep(420);
+                    // 1 second delay before next range API call for this channel
+                    await sleep(1000);
 
                 } catch (err) {
-                    console.error(`[RangeWorker ${workerId}] error:`, err);
+                    console.error(`[RangeWorker] error:`, err);
                     setStatus("Connection error | Retrying...", "Reconnecting");
-                    await sleep(500);
+                    await sleep(1000);
                 }
             }
         }
 
-        console.log(`[RangeLoop] Launching 2 parallel range workers for ${typeLabel} ₹${minAmount}-${maxAmount}`);
-        const w1 = rangeWorker(1);
-        await sleep(210);
-        const w2 = rangeWorker(2);
-
-        await Promise.all([w1, w2]);
+        console.log(`[RangeLoop] Launching range search for ${typeLabel} ₹${minAmount}-${maxAmount} with 1s cadence`);
+        await rangeWorker();
     }
 
     // ===============================================
@@ -1439,11 +1448,12 @@
                         setStatus(`Mixed | ${typeLabel}: ${statusText} | ₹${minAmount}-${maxAmount}`, "Scanning active");
                     }
 
-                    await sleep(480);
+                    // 1 second (1000ms) delay before next call for this channel (UPI or BANK)
+                    await sleep(1000);
 
                 } catch (err) {
                     console.error(`[MixedRange ${typeLabel}] error:`, err);
-                    await sleep(500);
+                    await sleep(1000);
                 }
             }
         }
