@@ -294,21 +294,21 @@
     
         <div class="cyber-body"> 
             
-            <div class="cyber-grid">
-                <div class="cyber-col">
-                    <label class="cyber-label">Search Mode</label>
-                    <div class="toggle-container" id="modeToggle">
-                        <div class="toggle-option active" data-mode="range">Range</div>
-                        <div class="toggle-option" data-mode="fixed">Fixed</div>
-                    </div>
+            <div style="margin-bottom: 7px;">
+                <label class="cyber-label">Search Mode</label>
+                <div class="toggle-container" id="modeToggle" style="margin-bottom:0;">
+                    <div class="toggle-option active" data-mode="range">Range</div>
+                    <div class="toggle-option" data-mode="fixed">Fixed</div>
+                    <div class="toggle-option" data-mode="mixed">Mixed</div>
                 </div>
+            </div>
 
-                <div class="cyber-col">
-                    <label class="cyber-label">Payment</label>
-                    <div class="toggle-container" id="orderTypeToggle">
-                        <div class="toggle-option active" data-value="1">UPI</div>
-                        <div class="toggle-option" data-value="2">Bank</div>
-                    </div>
+            <!-- Payment Type Section (Hidden in Mixed Mode) -->
+            <div id="paymentSection" style="margin-bottom: 7px;">
+                <label class="cyber-label">Payment</label>
+                <div class="toggle-container" id="orderTypeToggle" style="margin-bottom:0;">
+                    <div class="toggle-option active" data-value="1">UPI</div>
+                    <div class="toggle-option" data-value="2">Bank</div>
                 </div>
             </div>
 
@@ -387,6 +387,7 @@
     const stopBtn = document.getElementById("stopBtn");
     const modeToggle = document.getElementById("modeToggle");
     const orderTypeToggle = document.getElementById("orderTypeToggle");
+    const paymentSection = document.getElementById("paymentSection");
     const fixedSection = document.getElementById("fixedSection");
     const rangeSection = document.getElementById("rangeSection");
     const amountInput = document.getElementById("buyAmount");
@@ -394,7 +395,7 @@
     const rangeToInput = document.getElementById("rangeToAmount");
 
     let isRunning = false;
-    let selectedMode = "range"; // "fixed" or "range"
+    let selectedMode = "range"; // "fixed", "range", or "mixed"
     let selectedOrderType = 1;
     let selectedMinAmount = 1500;
     let selectedMaxAmount = 2000;
@@ -405,9 +406,16 @@
         if (mode === "fixed") {
             fixedSection.style.display = "block";
             rangeSection.style.display = "none";
-        } else {
+            if (paymentSection) paymentSection.style.display = "block";
+        } else if (mode === "mixed") {
             fixedSection.style.display = "none";
             rangeSection.style.display = "block";
+            if (paymentSection) paymentSection.style.display = "none";
+        } else {
+            // "range" mode
+            fixedSection.style.display = "none";
+            rangeSection.style.display = "block";
+            if (paymentSection) paymentSection.style.display = "block";
         }
         modeToggle.querySelectorAll(".toggle-option").forEach(opt => {
             if (opt.dataset.mode === mode) {
@@ -421,7 +429,7 @@
     // Restore saved selections
     try {
         const savedMode = localStorage.getItem("cyber_search_mode");
-        if (savedMode === "fixed" || savedMode === "range") {
+        if (savedMode === "fixed" || savedMode === "range" || savedMode === "mixed") {
             applyModeUI(savedMode);
         }
 
@@ -752,6 +760,36 @@
             setStatus(`Running | Fixed ₹${amount} (${typeLabel})`, "Engine active");
             runLegacyLoop(amount, selectedOrderType);
 
+        } else if (selectedMode === "mixed") {
+            // Mixed Search Mode (Parallel Range for UPI & Bank + Fixed for Bank only with To amount)
+            const fromVal = Number(rangeFromInput?.value || selectedMinAmount);
+            const toVal = Number(rangeToInput?.value || selectedMaxAmount);
+
+            if (!fromVal || !toVal) {
+                setStatus("Enter range values");
+                return;
+            }
+
+            if (fromVal > toVal) {
+                setStatus("From cannot exceed To");
+                return;
+            }
+
+            selectedMinAmount = fromVal;
+            selectedMaxAmount = toVal;
+
+            isRunning = true;
+            localStorage.setItem("cyber_auto_running", "true");
+            localStorage.setItem("cyber_search_mode", "mixed");
+            localStorage.setItem("cyber_selected_range", JSON.stringify({
+                min: selectedMinAmount,
+                max: selectedMaxAmount
+            }));
+
+            overlay.style.display = "flex";
+            setStatus(`Running Mixed | Range ₹${selectedMinAmount}-${selectedMaxAmount} & Fixed Bank ₹${selectedMaxAmount}`, "Engine active");
+            runMixedLoop(selectedMinAmount, selectedMaxAmount);
+
         } else {
             // Range Search Mode
             const fromVal = Number(rangeFromInput?.value || selectedMinAmount);
@@ -1054,6 +1092,228 @@
                 await sleep(1500);
             }
         }
+    }
+
+    // ===============================================
+    // MIXED SEARCH LOOP (PARALLEL RANGE & FIXED BANK)
+    // ===============================================
+    async function runMixedLoop(minAmount, maxAmount) {
+        const fixedTargetAmount = maxAmount;
+        const processedOrders = new Set();
+        let isOrderMatched = false;
+
+        async function onMatchSuccess(sourceDesc, amountDesc) {
+            if (isOrderMatched) return;
+            isOrderMatched = true;
+            isRunning = false;
+            setStatus(`Order matched (${sourceDesc}) | Refreshing in 2s...`, "Order completed");
+            console.log(`[MixedLoop] Match success via ${sourceDesc} (${amountDesc})! Playing ringtone for 2s and refreshing...`);
+            localStorage.setItem("cyber_auto_running", "true");
+            playRingtone(2000);
+            await sleep(2000);
+            location.reload();
+        }
+
+        // Parallel Worker for Smart Range Match (UPI or Bank)
+        async function rangeWorker(orderType, typeLabel) {
+            while (isRunning && !isOrderMatched) {
+                try {
+                    const reqHeaders = {
+                        "Accept": "application/json, text/plain, */*",
+                        "Content-Type": "application/json",
+                        "language": "1",
+                        "authorization": `Bearer ${token}`,
+                        "memberId": String(memberId),
+                        "deviceId": "undefined",
+                        "deviceType": "3",
+                        "deviceCode": deviceCode
+                    };
+
+                    const reqBody = {
+                        maxAmount: maxAmount,
+                        minAmount: minAmount,
+                        orderType: orderType,
+                        buyBankCode: "supermoney",
+                        buyerKycId: ""
+                    };
+
+                    const response = await fetch(
+                        "https://apiweb.apiarbpay.com/ar-wallet/smartRangeBuy/match/start",
+                        {
+                            method: "POST",
+                            headers: reqHeaders,
+                            body: JSON.stringify(reqBody)
+                        }
+                    );
+
+                    const data = await response.json();
+                    if (data?.data?.buyResult) {
+                        console.table([data.data.buyResult]);
+                    }
+
+                    const matchResult = data?.data?.matchResult;
+                    const matchInfoStatus = String(data?.data?.matchInfo?.status || "").toUpperCase();
+                    const isMatched = String(data?.code) === "1" && (
+                        (matchResult === "MATCHED" && matchInfoStatus === "COMPLETED") ||
+                        matchResult === "MATCHED" ||
+                        Boolean(data?.data?.buyResult)
+                    );
+
+                    if (isMatched) {
+                        await onMatchSuccess(`Range ${typeLabel}`, `₹${minAmount}-${maxAmount}`);
+                        return;
+                    }
+
+                    if (!isOrderMatched) {
+                        const statusText = matchResult ? matchResult.replace(/_/g, " ") : (data?.msg || "Searching");
+                        setStatus(`Mixed | Range ${typeLabel}: ${statusText} | ₹${minAmount}-${maxAmount}`, "Scanning active");
+                    }
+
+                    await sleep(1000);
+
+                } catch (err) {
+                    console.error(`[MixedRange ${typeLabel}] error:`, err);
+                    await sleep(1200);
+                }
+            }
+        }
+
+        // Fast Booking for Fixed Bank candidate
+        async function attemptBookFixed(order) {
+            if (!isRunning || isOrderMatched) return;
+            const orderId = order.platformOrder;
+            if (!orderId || processedOrders.has(orderId)) return;
+            processedOrders.add(orderId);
+
+            console.log(`[MixedFixedBank] Candidate found! Attempting order ${orderId} | ₹${order.amount}`);
+            setStatus(`Mixed | Trying Fixed Bank ₹${order.amount}`, "Processing");
+
+            try {
+                const payload = {
+                    amount: order.amount,
+                    platformOrder: order.platformOrder,
+                    payType: order.payType,
+                    orderType: order.orderType
+                };
+
+                const beforeBuyRes = await fetch(
+                    "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/beforeBuy", {
+                        method: "POST",
+                        headers: {
+                            "accept": "application/json, text/plain, */*",
+                            "content-type": "application/json",
+                            "authorization": `Bearer ${token}`,
+                            "deviceId": "undefined",
+                            "deviceType": "3",
+                            "page": "Arb",
+                            "deviceCode": deviceCode
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                const beforeBuyData = await beforeBuyRes.json();
+                if (beforeBuyData.code !== "1") {
+                    console.log(`[MixedFixedBank] beforeBuy rejected for ${orderId}:`, beforeBuyData);
+                    return;
+                }
+
+                if (!isRunning || isOrderMatched) return;
+
+                const buyRes = await fetch(
+                    "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buy", {
+                        method: "POST",
+                        headers: {
+                            "accept": "application/json, text/plain, */*",
+                            "content-type": "application/json",
+                            "authorization": `Bearer ${token}`,
+                            "deviceId": "undefined",
+                            "deviceType": "3",
+                            "page": "Arb",
+                            "deviceCode": deviceCode
+                        },
+                        body: JSON.stringify({
+                            amount: order.amount,
+                            platformOrder: order.platformOrder,
+                            payType: order.payType,
+                            orderType: order.orderType,
+                            buyBankCode: "supermoney",
+                            buyerKycId: ""
+                        })
+                    }
+                );
+
+                const buyData = await buyRes.json();
+                console.log(`[MixedFixedBank] buy result for ${orderId}:`, buyData);
+
+                if (buyData.code === "1" || buyData.msg === "Success") {
+                    await onMatchSuccess("Fixed Bank", `₹${order.amount}`);
+                }
+
+            } catch (err) {
+                console.error("[MixedFixedBank] Booking error:", err);
+            }
+        }
+
+        // Parallel Worker for Fixed Bank search
+        async function fixedBankWorker() {
+            while (isRunning && !isOrderMatched) {
+                try {
+                    const listRes = await fetch(
+                        "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
+                            method: "POST",
+                            headers: {
+                                "accept": "application/json, text/plain, */*",
+                                "content-type": "application/json",
+                                "authorization": `Bearer ${token}`,
+                                "deviceId": "undefined",
+                                "deviceType": "3",
+                                "page": "Arb",
+                                "deviceCode": deviceCode
+                            },
+                            body: JSON.stringify({
+                                orderType: 2, // ONLY BANK
+                                pageNo: 1
+                            })
+                        }
+                    );
+
+                    const listData = await listRes.json();
+                    const orders = listData?.data?.list || [];
+
+                    const candidates = orders.filter(
+                        item => Number(item.amount) === fixedTargetAmount && !processedOrders.has(item.platformOrder)
+                    );
+
+                    if (candidates.length > 0) {
+                        for (const candidate of candidates) {
+                            if (isOrderMatched) break;
+                            attemptBookFixed(candidate);
+                        }
+                    }
+
+                    await sleep(350);
+
+                } catch (e) {
+                    console.error("[MixedFixedBank] Search error:", e);
+                    await sleep(600);
+                }
+            }
+        }
+
+        // Start all 3 parallel streams: Range UPI, Range Bank, and Fixed Bank
+        setStatus(`Mixed Running | Range ₹${minAmount}-${maxAmount} & Fixed Bank ₹${fixedTargetAmount}`, "Engine active");
+
+        const streams = [
+            rangeWorker(1, "UPI"),
+            (async () => { await sleep(150); return rangeWorker(2, "Bank"); })()
+        ];
+
+        if (isPremiumMember || fixedTargetAmount >= 2000) {
+            streams.push((async () => { await sleep(250); return fixedBankWorker(); })());
+        }
+
+        await Promise.all(streams);
     }
 
     // =========================
