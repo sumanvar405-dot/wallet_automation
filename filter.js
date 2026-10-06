@@ -5,183 +5,336 @@
     // =========================
     const style = document.createElement("style");
     style.innerHTML = `
+    #cyberFloatingDot {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, rgba(22, 38, 72, 0.96), rgba(8, 12, 26, 0.98));
+        border: 1.5px solid rgba(0, 247, 255, 0.45);
+        box-shadow: 
+            0 8px 24px rgba(0, 0, 0, 0.65),
+            0 0 16px rgba(0, 247, 255, 0.25),
+            inset 0 1px 2px rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(20px);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    #cyberFloatingDot:hover {
+        transform: scale(1.08);
+        border-color: #00f7ff;
+        box-shadow: 
+            0 10px 28px rgba(0, 0, 0, 0.7),
+            0 0 22px rgba(0, 247, 255, 0.5),
+            inset 0 1px 3px rgba(255, 255, 255, 0.4);
+    }
+
+    #cyberFloatingDot.is-dragging {
+        cursor: grabbing;
+        transform: scale(1.05);
+    }
+
+    .cyber-floating-core {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #00f7ff;
+        box-shadow: 0 0 10px #00f7ff;
+        transition: all 0.3s ease;
+    }
+
+    #cyberFloatingDot.running .cyber-floating-core {
+        background: #00ff95;
+        box-shadow: 0 0 12px #00ff95;
+        animation: cyberCorePulse 1.2s infinite ease-in-out;
+    }
+
+    .cyber-floating-ring {
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 247, 255, 0.35);
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    #cyberFloatingDot.running .cyber-floating-ring {
+        border-color: rgba(0, 255, 149, 0.7);
+        animation: cyberRingPulse 1.8s infinite ease-out;
+    }
+
+    @keyframes cyberCorePulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.25); opacity: 0.7; }
+    }
+
+    @keyframes cyberRingPulse {
+        0% { transform: scale(0.9); opacity: 0.8; }
+        50% { transform: scale(1.25); opacity: 0.2; }
+        100% { transform: scale(1.4); opacity: 0; }
+    }
+
     #cyberPanel{ 
         position:fixed; 
-        right:18px; 
-        bottom:18px; 
-        width:250px; 
+        right:24px; 
+        bottom:24px; 
+        width:310px; 
         z-index:999999; 
-        background:rgba(10, 15, 30, 0.94); 
-        border:1px solid rgba(0, 247, 255, 0.22); 
-        border-radius:12px; 
-        backdrop-filter:blur(20px); 
+        background:linear-gradient(165deg, rgba(14, 23, 44, 0.96) 0%, rgba(7, 11, 24, 0.98) 100%); 
+        border:1px solid rgba(0, 247, 255, 0.28); 
+        border-radius:16px; 
+        backdrop-filter:blur(28px) saturate(190%); 
         box-shadow: 
-            0 12px 36px rgba(0, 0, 0, 0.55),
-            0 0 15px rgba(0, 247, 255, 0.08); 
+            0 24px 50px -8px rgba(0, 0, 0, 0.75),
+            0 0 28px rgba(0, 247, 255, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15); 
         overflow:hidden; 
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
         user-select: none;
+        display: none;
+        animation: cyberPanelFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     } 
+
+    @keyframes cyberPanelFadeIn {
+        from { opacity: 0; transform: scale(0.95) translateY(8px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
     
     .cyber-header{ 
-        padding:7px 12px; 
-        background:linear-gradient(90deg, rgba(0, 247, 255, 0.12), rgba(122, 0, 255, 0.12)); 
+        padding:11px 16px; 
+        background:linear-gradient(90deg, rgba(0, 247, 255, 0.14), rgba(122, 0, 255, 0.1)); 
         color:#00f7ff; 
-        font-size: 10.5px;
-        letter-spacing: 0.6px;
-        font-weight:600; 
+        border-bottom:1px solid rgba(0, 247, 255, 0.18); 
         display: flex;
         align-items: center;
         justify-content: space-between;
-        cursor:move; 
-        border-bottom:1px solid rgba(0, 247, 255, 0.15); 
-        text-transform: none;
+        cursor:grab; 
+        user-select: none;
     } 
 
+    .cyber-header:active {
+        cursor: grabbing;
+    }
+
+    .cyber-header-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: #00f7ff;
+        text-transform: uppercase;
+    }
+
     .cyber-header-dot {
-        width: 5px;
-        height: 5px;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
         background: #00ff95;
-        box-shadow: 0 0 6px #00ff95;
+        box-shadow: 0 0 8px #00ff95;
+        animation: cyberPulse 2s infinite ease-in-out;
+    }
+
+    .cyber-min-btn {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(0, 247, 255, 0.2);
+        color: #8defff;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+        padding: 3px 8px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cyber-min-btn:hover {
+        background: rgba(0, 247, 255, 0.18);
+        color: #ffffff;
+        border-color: #00f7ff;
+        box-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
     }
     
     .cyber-body{ 
-        padding:9px 11px; 
+        padding:14px 16px 16px; 
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     } 
+
+    .cyber-section {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
 
     .cyber-grid {
         display: flex;
-        gap: 8px;
-        margin-bottom: 7px;
+        gap: 10px;
     }
 
     .cyber-col {
         flex: 1;
         min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
     }
     
     .cyber-label{ 
         color:#8defff; 
-        font-size:9.5px; 
-        margin-bottom:3px; 
-        display:block; 
-        text-transform: none;
-        letter-spacing: 0.3px;
+        font-size:10px; 
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
         opacity: 0.85;
-        font-weight: 500;
     } 
     
     .cyber-input{ 
         width:100%; 
         box-sizing:border-box; 
-        padding:5px 8px; 
-        background:rgba(17, 24, 39, 0.6); 
-        border:1px solid rgba(0, 247, 255, 0.25); 
-        border-radius:7px; 
+        height: 38px;
+        padding:0 12px; 
+        background:rgba(9, 15, 30, 0.7); 
+        border:1px solid rgba(0, 247, 255, 0.22); 
+        border-radius:10px; 
         color:#fff; 
-        font-size:12px; 
+        font-size:13.5px; 
+        font-weight: 600;
+        font-family: inherit;
         outline:none; 
         transition: all 0.25s ease;
     } 
     
     .cyber-input:focus{ 
         border-color: #00f7ff;
-        box-shadow:0 0 10px rgba(0, 247, 255, 0.25); 
+        background: rgba(12, 20, 42, 0.85);
+        box-shadow:0 0 14px rgba(0, 247, 255, 0.35); 
     } 
     
     .cyber-buttons{ 
         display:flex; 
-        gap:6px; 
-        margin-top:7px; 
+        gap:10px; 
+        margin-top:4px; 
     } 
     
     .cyber-btn{ 
-        flex:1; 
         border:none; 
-        padding:6px 10px; 
-        border-radius:7px; 
+        height: 38px;
+        padding:0 14px; 
+        border-radius:10px; 
         cursor:pointer; 
-        font-size: 10.5px;
-        font-weight:600; 
+        font-size: 12px;
+        font-weight:700; 
+        letter-spacing: 0.5px;
         transition:all .2s ease; 
-        text-transform: none;
-        letter-spacing: 0.3px;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     } 
     
     .start-btn{ 
-        background:linear-gradient(135deg, #00f7ff, #00c9db); 
-        color:#06111e; 
-        font-weight: 700;
-        box-shadow: 0 2px 10px rgba(0, 247, 255, 0.25);
+        flex: 1.2;
+        background:linear-gradient(135deg, #00f7ff 0%, #00e5a3 100%); 
+        color:#031521; 
+        font-weight: 800;
+        box-shadow: 0 4px 16px rgba(0, 247, 255, 0.35);
     } 
     
     .start-btn:hover{ 
-        transform:translateY(-1px); 
-        box-shadow:0 4px 14px rgba(0, 247, 255, 0.45); 
+        transform:translateY(-1.5px); 
+        box-shadow:0 6px 22px rgba(0, 247, 255, 0.55); 
     } 
     
+    .start-btn:active {
+        transform: translateY(0);
+    }
+    
     .stop-btn{ 
-        background:rgba(255, 45, 85, 0.15); 
+        flex: 1;
+        background:rgba(255, 45, 85, 0.12); 
         color:#ff5277; 
         border: 1px solid rgba(255, 45, 85, 0.35);
     } 
     
     .stop-btn:hover{ 
-        background:rgba(255, 45, 85, 0.25); 
-        transform:translateY(-1px); 
-        box-shadow:0 2px 10px rgba(255, 45, 85, 0.25); 
+        background:rgba(255, 45, 85, 0.22); 
+        border-color: rgba(255, 45, 85, 0.6);
+        box-shadow:0 4px 14px rgba(255, 45, 85, 0.25); 
+        transform:translateY(-1.5px); 
     } 
+
+    .stop-btn:active {
+        transform: translateY(0);
+    }
     
     .cyber-status{ 
-        margin-top:7px; 
-        background:rgba(17, 24, 39, 0.6); 
-        border-radius:7px; 
-        padding:5px 8px; 
+        margin-top:2px; 
+        background:rgba(8, 14, 28, 0.7); 
+        border-radius:10px; 
+        padding:9px 12px; 
         display: flex;
         align-items: center;
         justify-content: center;
         text-align:center; 
         color:#00ff95; 
-        font-size:10px; 
+        font-size:11.5px; 
+        font-weight: 600;
         border:1px solid rgba(0, 255, 149, 0.25); 
-        min-height: 26px;
-        box-shadow: inset 0 0 5px rgba(0, 255, 149, 0.08);
-        text-transform: none;
-        letter-spacing: 0.2px;
+        min-height: 36px;
+        box-shadow: inset 0 0 8px rgba(0, 255, 149, 0.08);
+        letter-spacing: 0.3px;
         transition: all 0.25s ease;
     } 
 
     /* Toggle Switch Styles */
     .toggle-container {
         display: flex;
-        background: rgba(17, 24, 39, 0.7);
-        border: 1px solid rgba(0, 247, 255, 0.2);
-        border-radius: 7px;
-        margin-bottom: 7px;
-        padding: 2px;
-        gap: 2px;
+        background: rgba(8, 14, 28, 0.75);
+        border: 1px solid rgba(0, 247, 255, 0.18);
+        border-radius: 9px;
+        padding: 3px;
+        gap: 3px;
     }
 
     .toggle-option {
         flex: 1;
-        padding: 4px 6px;
+        padding: 7px 10px;
         text-align: center;
         color: #8defff;
-        font-size: 10px;
-        font-weight: 500;
+        font-size: 11px;
+        font-weight: 600;
         cursor: pointer;
-        border-radius: 5px;
+        border-radius: 7px;
         transition: all 0.2s ease;
         user-select: none;
         white-space: nowrap;
     }
 
+    .toggle-option:hover {
+        background: rgba(0, 247, 255, 0.08);
+        color: #ffffff;
+    }
+
     .toggle-option.active {
-        background: #00f7ff;
-        color: #06111e;
-        font-weight: 600;
-        box-shadow: 0 0 8px rgba(0, 247, 255, 0.35);
+        background: linear-gradient(135deg, #00f7ff, #00c9db);
+        color: #031521;
+        font-weight: 700;
+        box-shadow: 0 2px 10px rgba(0, 247, 255, 0.4);
     }
 
     #overlay-status-container {
@@ -282,21 +435,36 @@
 
     const overlayLiveStatus = document.getElementById("overlay-live-status");
 
+    let floatingDot = document.getElementById("cyberFloatingDot");
+    if (!floatingDot) {
+        floatingDot = document.createElement("div");
+        floatingDot.id = "cyberFloatingDot";
+        floatingDot.title = "Drag to move | Click to open Auto Buy";
+        floatingDot.innerHTML = `
+            <span class="cyber-floating-core"></span>
+            <span class="cyber-floating-ring"></span>
+        `;
+        document.body.appendChild(floatingDot);
+    }
+
     let panel = document.getElementById("cyberPanel");
     if (!panel) {
         panel = document.createElement("div");
         panel.id = "cyberPanel";
         panel.innerHTML = `
         <div class="cyber-header"> 
-            <span>Auto Buy</span>
-            <span class="cyber-header-dot"></span>
+            <div class="cyber-header-title">
+                <span class="cyber-header-dot"></span>
+                <span>Auto Buy</span>
+            </div>
+            <button id="cyberMinBtn" class="cyber-min-btn" title="Minimize to dot">−</button>
         </div> 
     
         <div class="cyber-body"> 
             
-            <div style="margin-bottom: 7px;">
+            <div class="cyber-section">
                 <label class="cyber-label">Search Mode</label>
-                <div class="toggle-container" id="modeToggle" style="margin-bottom:0;">
+                <div class="toggle-container" id="modeToggle">
                     <div class="toggle-option active" data-mode="range">Range</div>
                     <div class="toggle-option" data-mode="fixed">Fixed</div>
                     <div class="toggle-option" data-mode="mixed">Mixed</div>
@@ -304,16 +472,16 @@
             </div>
 
             <!-- Payment Type Section (Hidden in Mixed Mode) -->
-            <div id="paymentSection" style="margin-bottom: 7px;">
+            <div class="cyber-section" id="paymentSection">
                 <label class="cyber-label">Payment</label>
-                <div class="toggle-container" id="orderTypeToggle" style="margin-bottom:0;">
-                    <div class="toggle-option active" data-value="1">UPI</div>
+                <div class="toggle-container" id="orderTypeToggle">
+                    <div class="toggle-option active" data-value="1">Upi</div>
                     <div class="toggle-option" data-value="2">Bank</div>
                 </div>
             </div>
 
             <!-- Fixed Amount Section -->
-            <div id="fixedSection" style="display:none; margin-bottom: 7px;">
+            <div class="cyber-section" id="fixedSection" style="display:none;">
                 <label class="cyber-label">Amount</label> 
                 <input 
                     type="text" 
@@ -321,13 +489,14 @@
                     class="cyber-input" 
                     value="2000"
                     min="1" 
+                    placeholder="2000"
                     oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                 > 
             </div>
 
             <!-- Range Search Section -->
-            <div id="rangeSection" style="margin-bottom: 7px;">
-                <div class="cyber-grid" style="margin-bottom: 0;">
+            <div class="cyber-section" id="rangeSection">
+                <div class="cyber-grid">
                     <div class="cyber-col">
                         <label class="cyber-label">From</label> 
                         <input 
@@ -380,6 +549,40 @@
     
         </div>`;
         document.body.appendChild(panel);
+    }
+
+    const minBtn = document.getElementById("cyberMinBtn");
+
+    function showPanel() {
+        panel.style.display = "block";
+        floatingDot.style.display = "none";
+        localStorage.setItem("cyber_panel_visible", "true");
+
+        const savedPanelX = localStorage.getItem("cyber_panel_x");
+        const savedPanelY = localStorage.getItem("cyber_panel_y");
+        if (savedPanelX !== null && savedPanelY !== null) {
+            panel.style.left = savedPanelX + "px";
+            panel.style.top = savedPanelY + "px";
+            panel.style.right = "auto";
+            panel.style.bottom = "auto";
+        }
+    }
+
+    function hidePanel() {
+        panel.style.display = "none";
+        floatingDot.style.display = "flex";
+        localStorage.setItem("cyber_panel_visible", "false");
+    }
+
+    if (minBtn) minBtn.onclick = (e) => {
+        e.stopPropagation();
+        hidePanel();
+    };
+
+    if (localStorage.getItem("cyber_panel_visible") === "false") {
+        hidePanel();
+    } else {
+        showPanel();
     }
 
     const statusEl = document.getElementById("cyberStatus");
@@ -481,7 +684,7 @@
             opt.classList.add("active");
             selectedOrderType = Number(opt.dataset.value);
             localStorage.setItem("cyber_order_type", String(selectedOrderType));
-            console.log("Selected Order Type:", selectedOrderType === 1 ? "UPI" : "BANK");
+            console.log("Selected Order Type:", selectedOrderType === 1 ? "Upi" : "Bank");
         };
     });
 
@@ -525,7 +728,6 @@
             if (alpha.length > 1 && alpha === alpha.toUpperCase()) {
                 let lower = trimmed.toLowerCase();
                 let converted = lower.replace(/\b[a-z]/g, c => c.toUpperCase());
-                converted = converted.replace(/\bUpi\b/g, "UPI");
                 return converted;
             }
             return trimmed;
@@ -736,7 +938,7 @@
     startBtn.onclick = () => {
         if (isRunning) return;
 
-        const typeLabel = selectedOrderType === 1 ? "UPI" : "BANK";
+        const typeLabel = selectedOrderType === 1 ? "Upi" : "Bank";
 
         if (selectedMode === "fixed") {
             const amount = Number(amountInput.value);
@@ -751,6 +953,7 @@
             }
 
             isRunning = true;
+            floatingDot.classList.add("running");
             localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "fixed");
             localStorage.setItem("cyber_fixed_amount", String(amount));
@@ -761,7 +964,7 @@
             runLegacyLoop(amount, selectedOrderType);
 
         } else if (selectedMode === "mixed") {
-            // Mixed Search Mode (Parallel Range for UPI & Bank + Fixed for Bank only with To amount)
+            // Mixed Search Mode (Parallel Range for Upi & Bank + Fixed for Bank only with To amount)
             const fromVal = Number(rangeFromInput?.value || selectedMinAmount);
             const toVal = Number(rangeToInput?.value || selectedMaxAmount);
 
@@ -779,6 +982,7 @@
             selectedMaxAmount = toVal;
 
             isRunning = true;
+            floatingDot.classList.add("running");
             localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "mixed");
             localStorage.setItem("cyber_selected_range", JSON.stringify({
@@ -787,7 +991,7 @@
             }));
 
             overlay.style.display = "flex";
-            setStatus(`Running Mixed | Range ₹${selectedMinAmount}-${selectedMaxAmount} & Fixed Bank ₹${selectedMaxAmount}`, "Engine active");
+            setStatus(`Running mixed | Range ₹${selectedMinAmount}-${selectedMaxAmount} & Fixed Bank ₹${selectedMaxAmount}`, "Engine active");
             runMixedLoop(selectedMinAmount, selectedMaxAmount);
 
         } else {
@@ -809,6 +1013,7 @@
             selectedMaxAmount = toVal;
 
             isRunning = true;
+            floatingDot.classList.add("running");
             localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "range");
             localStorage.setItem("cyber_selected_range", JSON.stringify({
@@ -825,44 +1030,167 @@
 
     stopBtn.onclick = () => {
         isRunning = false;
+        floatingDot.classList.remove("running");
         localStorage.setItem("cyber_auto_running", "false");
         overlay.style.display = "none";
         setStatus("System idle", "Stopped");
     };
 
-    // =========================
-    // DRAGGABLE LOGIC
-    // =========================
-    (function () {
+    // ===================================
+    // MOVABLE FLOATING DOT DRAG LOGIC
+    // ===================================
+    (function initFloatingDotDrag() {
+        let isDragging = false;
+        let hasMoved = false;
+        let startX = 0;
+        let startY = 0;
+        let initialLeft = 0;
+        let initialTop = 0;
+
+        // Restore saved dot position
+        const savedDotX = localStorage.getItem("cyber_dot_x");
+        const savedDotY = localStorage.getItem("cyber_dot_y");
+        if (savedDotX !== null && savedDotY !== null) {
+            const x = Math.max(8, Math.min(window.innerWidth - 56, Number(savedDotX)));
+            const y = Math.max(8, Math.min(window.innerHeight - 56, Number(savedDotY)));
+            floatingDot.style.left = x + "px";
+            floatingDot.style.top = y + "px";
+            floatingDot.style.right = "auto";
+            floatingDot.style.bottom = "auto";
+        }
+
+        function onPointerDown(e) {
+            isDragging = true;
+            hasMoved = false;
+            startX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
+            startY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
+            const rect = floatingDot.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            floatingDot.classList.add("is-dragging");
+        }
+
+        function onPointerMove(e) {
+            if (!isDragging) return;
+            const clientX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
+            const clientY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+                hasMoved = true;
+            }
+
+            if (hasMoved) {
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+                newLeft = Math.max(8, Math.min(window.innerWidth - floatingDot.offsetWidth - 8, newLeft));
+                newTop = Math.max(8, Math.min(window.innerHeight - floatingDot.offsetHeight - 8, newTop));
+
+                floatingDot.style.left = newLeft + "px";
+                floatingDot.style.top = newTop + "px";
+                floatingDot.style.right = "auto";
+                floatingDot.style.bottom = "auto";
+            }
+        }
+
+        function onPointerUp() {
+            if (!isDragging) return;
+            isDragging = false;
+            floatingDot.classList.remove("is-dragging");
+
+            if (hasMoved) {
+                const rect = floatingDot.getBoundingClientRect();
+                localStorage.setItem("cyber_dot_x", String(rect.left));
+                localStorage.setItem("cyber_dot_y", String(rect.top));
+            } else {
+                // Click gesture: Open the panel
+                showPanel();
+            }
+        }
+
+        floatingDot.addEventListener("mousedown", onPointerDown);
+        window.addEventListener("mousemove", onPointerMove);
+        window.addEventListener("mouseup", onPointerUp);
+
+        floatingDot.addEventListener("touchstart", onPointerDown, { passive: true });
+        window.addEventListener("touchmove", onPointerMove, { passive: true });
+        window.addEventListener("touchend", onPointerUp);
+    })();
+
+    // ===================================
+    // MOVABLE PANEL HEADER DRAG LOGIC
+    // ===================================
+    (function initPanelDrag() {
         const header = panel.querySelector(".cyber-header");
-        let drag = false;
-        let x = 0;
-        let y = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let initialLeft = 0;
+        let initialTop = 0;
 
-        header.addEventListener("mousedown", e => {
-            drag = true;
-            x = e.clientX - panel.offsetLeft;
-            y = e.clientY - panel.offsetTop;
-        });
-
-        document.addEventListener("mouseup", () => {
-            drag = false;
-        });
-
-        document.addEventListener("mousemove", e => {
-            if (!drag) return;
-            panel.style.left = (e.clientX - x) + "px";
-            panel.style.top = (e.clientY - y) + "px";
+        // Restore saved panel position
+        const savedPanelX = localStorage.getItem("cyber_panel_x");
+        const savedPanelY = localStorage.getItem("cyber_panel_y");
+        if (savedPanelX !== null && savedPanelY !== null) {
+            const px = Math.max(8, Math.min(window.innerWidth - 325, Number(savedPanelX)));
+            const py = Math.max(8, Math.min(window.innerHeight - 380, Number(savedPanelY)));
+            panel.style.left = px + "px";
+            panel.style.top = py + "px";
             panel.style.right = "auto";
             panel.style.bottom = "auto";
-        });
+        }
+
+        function onPointerDown(e) {
+            if (e.target.closest("#cyberMinBtn")) return;
+            isDragging = true;
+            startX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
+            startY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
+            const rect = panel.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+        }
+
+        function onPointerMove(e) {
+            if (!isDragging) return;
+            const clientX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
+            const clientY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            let newLeft = initialLeft + dx;
+            let newTop = initialTop + dy;
+            newLeft = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, newLeft));
+            newTop = Math.max(8, Math.min(window.innerHeight - panel.offsetHeight - 8, newTop));
+
+            panel.style.left = newLeft + "px";
+            panel.style.top = newTop + "px";
+            panel.style.right = "auto";
+            panel.style.bottom = "auto";
+        }
+
+        function onPointerUp() {
+            if (!isDragging) return;
+            isDragging = false;
+            const rect = panel.getBoundingClientRect();
+            localStorage.setItem("cyber_panel_x", String(rect.left));
+            localStorage.setItem("cyber_panel_y", String(rect.top));
+        }
+
+        header.addEventListener("mousedown", onPointerDown);
+        window.addEventListener("mousemove", onPointerMove);
+        window.addEventListener("mouseup", onPointerUp);
+
+        header.addEventListener("touchstart", onPointerDown, { passive: true });
+        window.addEventListener("touchmove", onPointerMove, { passive: true });
+        window.addEventListener("touchend", onPointerUp);
     })();
 
     // ===============================================
     // FIXED AMOUNT LOOP (PARALLEL SEARCH & FAST BOOK)
     // ===============================================
     async function runLegacyLoop(targetAmount, type) {
-        const typeLabel = type === 1 ? "UPI" : "Bank";
+        const typeLabel = type === 1 ? "Upi" : "Bank";
         const processedOrders = new Set();
         let isOrderMatched = false;
 
@@ -1019,7 +1347,7 @@
 
             try {
 
-                const typeLabel = type === 1 ? "UPI" : "Bank";
+                const typeLabel = type === 1 ? "Upi" : "Bank";
                 setStatus(`Scanning orders | ₹${minAmount} - ₹${maxAmount}`, `Matching ${typeLabel}`);
 
                 const reqHeaders = {
@@ -1301,11 +1629,11 @@
             }
         }
 
-        // Start all 3 parallel streams: Range UPI, Range Bank, and Fixed Bank
-        setStatus(`Mixed Running | Range ₹${minAmount}-${maxAmount} & Fixed Bank ₹${fixedTargetAmount}`, "Engine active");
+        // Start all 3 parallel streams: Range Upi, Range Bank, and Fixed Bank
+        setStatus(`Mixed running | Range ₹${minAmount}-${maxAmount} & Fixed Bank ₹${fixedTargetAmount}`, "Engine active");
 
         const streams = [
-            rangeWorker(1, "UPI"),
+            rangeWorker(1, "Upi"),
             (async () => { await sleep(150); return rangeWorker(2, "Bank"); })()
         ];
 
@@ -1320,6 +1648,7 @@
     // AUTO-RESUME CHECK
     // =========================
     if (localStorage.getItem("cyber_auto_running") === "true") {
+        floatingDot.classList.add("running");
         console.log("Auto-run is enabled. Starting automation in 800ms...");
         setTimeout(() => {
             if (localStorage.getItem("cyber_auto_running") === "true" && !isRunning) {
