@@ -7,18 +7,18 @@
     style.innerHTML = `
     #cyberFloatingDot {
         position: fixed;
-        right: 24px;
-        bottom: 24px;
-        width: 44px;
-        height: 44px;
+        right: 20px;
+        bottom: 20px;
+        width: 35px;
+        height: 35px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 35%, rgba(22, 38, 72, 0.96), rgba(8, 12, 26, 0.98));
+        background: radial-gradient(circle at 35% 35%, rgba(20, 32, 58, 0.96), rgba(8, 12, 22, 0.98));
         border: 1.5px solid rgba(0, 247, 255, 0.45);
         box-shadow: 
-            0 8px 24px rgba(0, 0, 0, 0.65),
-            0 0 16px rgba(0, 247, 255, 0.25),
+            0 6px 18px rgba(0, 0, 0, 0.65),
+            0 0 12px rgba(0, 247, 255, 0.25),
             inset 0 1px 2px rgba(255, 255, 255, 0.25);
-        backdrop-filter: blur(20px);
+        backdrop-filter: blur(10px);
         z-index: 999999;
         display: flex;
         align-items: center;
@@ -26,16 +26,16 @@
         cursor: grab;
         user-select: none;
         touch-action: none;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     }
 
     #cyberFloatingDot:hover {
         transform: scale(1.08);
         border-color: #00f7ff;
         box-shadow: 
-            0 10px 28px rgba(0, 0, 0, 0.7),
-            0 0 22px rgba(0, 247, 255, 0.5),
-            inset 0 1px 3px rgba(255, 255, 255, 0.4);
+            0 8px 22px rgba(0, 0, 0, 0.7),
+            0 0 16px rgba(0, 247, 255, 0.45),
+            inset 0 1px 3px rgba(255, 255, 255, 0.35);
     }
 
     #cyberFloatingDot.is-dragging {
@@ -44,23 +44,23 @@
     }
 
     .cyber-floating-core {
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         background: #00f7ff;
-        box-shadow: 0 0 10px #00f7ff;
-        transition: all 0.3s ease;
+        box-shadow: 0 0 8px #00f7ff;
+        transition: all 0.25s ease;
     }
 
     #cyberFloatingDot.running .cyber-floating-core {
         background: #00ff95;
-        box-shadow: 0 0 12px #00ff95;
+        box-shadow: 0 0 10px #00ff95;
         animation: cyberCorePulse 1.2s infinite ease-in-out;
     }
 
     .cyber-floating-ring {
         position: absolute;
-        inset: -4px;
+        inset: -3px;
         border-radius: 50%;
         border: 1px solid rgba(0, 247, 255, 0.35);
         opacity: 0.6;
@@ -83,41 +83,41 @@
         100% { transform: scale(1.4); opacity: 0; }
     }
 
-    #cyberPanel{ 
-        position:fixed; 
-        right:24px; 
-        bottom:24px; 
-        width:310px; 
-        z-index:999999; 
-        background:linear-gradient(165deg, rgba(14, 23, 44, 0.96) 0%, rgba(7, 11, 24, 0.98) 100%); 
-        border:1px solid rgba(0, 247, 255, 0.28); 
-        border-radius:16px; 
-        backdrop-filter:blur(28px) saturate(190%); 
+    #cyberPanel { 
+        position: fixed; 
+        right: 20px; 
+        bottom: 20px; 
+        width: 264px; 
+        z-index: 999999; 
+        background: linear-gradient(165deg, rgba(13, 19, 34, 0.96) 0%, rgba(7, 10, 20, 0.98) 100%); 
+        border: 1px solid rgba(0, 247, 255, 0.22); 
+        border-radius: 14px; 
+        backdrop-filter: blur(12px); 
         box-shadow: 
-            0 24px 50px -8px rgba(0, 0, 0, 0.75),
-            0 0 28px rgba(0, 247, 255, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15); 
-        overflow:hidden; 
+            0 18px 42px -6px rgba(0, 0, 0, 0.75),
+            0 0 20px rgba(0, 247, 255, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12); 
+        overflow: hidden; 
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
         user-select: none;
         display: none;
-        animation: cyberPanelFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: cyberPanelFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     } 
 
     @keyframes cyberPanelFadeIn {
-        from { opacity: 0; transform: scale(0.95) translateY(8px); }
+        from { opacity: 0; transform: scale(0.96) translateY(6px); }
         to { opacity: 1; transform: scale(1) translateY(0); }
     }
     
-    .cyber-header{ 
-        padding:11px 16px; 
-        background:linear-gradient(90deg, rgba(0, 247, 255, 0.14), rgba(122, 0, 255, 0.1)); 
-        color:#00f7ff; 
-        border-bottom:1px solid rgba(0, 247, 255, 0.18); 
+    .cyber-header { 
+        padding: 9px 12px; 
+        background: linear-gradient(90deg, rgba(0, 247, 255, 0.12), rgba(122, 0, 255, 0.08)); 
+        color: #00f7ff; 
+        border-bottom: 1px solid rgba(0, 247, 255, 0.15); 
         display: flex;
         align-items: center;
         justify-content: space-between;
-        cursor:grab; 
+        cursor: grab; 
         user-select: none;
     } 
 
@@ -128,34 +128,33 @@
     .cyber-header-title {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 12px;
+        gap: 7px;
+        font-size: 11.5px;
         font-weight: 700;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.5px;
         color: #00f7ff;
-        text-transform: uppercase;
     }
 
     .cyber-header-dot {
-        width: 7px;
-        height: 7px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
         background: #00ff95;
-        box-shadow: 0 0 8px #00ff95;
+        box-shadow: 0 0 7px #00ff95;
         animation: cyberPulse 2s infinite ease-in-out;
     }
 
     .cyber-min-btn {
         background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(0, 247, 255, 0.2);
+        border: 1px solid rgba(0, 247, 255, 0.18);
         color: #8defff;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: bold;
         line-height: 1;
         cursor: pointer;
-        padding: 3px 8px;
-        border-radius: 6px;
-        transition: all 0.2s ease;
+        padding: 2px 7px;
+        border-radius: 5px;
+        transition: all 0.15s ease;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -165,25 +164,25 @@
         background: rgba(0, 247, 255, 0.18);
         color: #ffffff;
         border-color: #00f7ff;
-        box-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+        box-shadow: 0 0 8px rgba(0, 247, 255, 0.3);
     }
     
-    .cyber-body{ 
-        padding:14px 16px 16px; 
+    .cyber-body { 
+        padding: 10px 12px 12px; 
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     } 
 
     .cyber-section {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 4px;
     }
 
     .cyber-grid {
         display: flex;
-        gap: 10px;
+        gap: 8px;
     }
 
     .cyber-col {
@@ -191,136 +190,135 @@
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 4px;
     }
     
-    .cyber-label{ 
-        color:#8defff; 
-        font-size:10px; 
+    .cyber-label { 
+        color: #8defff; 
+        font-size: 9.5px; 
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
+        letter-spacing: 0.5px;
         opacity: 0.85;
     } 
     
-    .cyber-input{ 
-        width:100%; 
-        box-sizing:border-box; 
-        height: 38px;
-        padding:0 12px; 
-        background:rgba(9, 15, 30, 0.7); 
-        border:1px solid rgba(0, 247, 255, 0.22); 
-        border-radius:10px; 
-        color:#fff; 
-        font-size:13.5px; 
+    .cyber-input { 
+        width: 100%; 
+        box-sizing: border-box; 
+        height: 32px;
+        padding: 0 9px; 
+        background: rgba(9, 14, 26, 0.75); 
+        border: 1px solid rgba(0, 247, 255, 0.2); 
+        border-radius: 8px; 
+        color: #fff; 
+        font-size: 12.5px; 
         font-weight: 600;
         font-family: inherit;
-        outline:none; 
-        transition: all 0.25s ease;
+        outline: none; 
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     } 
     
-    .cyber-input:focus{ 
+    .cyber-input:focus { 
         border-color: #00f7ff;
-        background: rgba(12, 20, 42, 0.85);
-        box-shadow:0 0 14px rgba(0, 247, 255, 0.35); 
+        background: rgba(12, 18, 36, 0.85);
+        box-shadow: 0 0 10px rgba(0, 247, 255, 0.3); 
     } 
     
-    .cyber-buttons{ 
-        display:flex; 
-        gap:10px; 
-        margin-top:4px; 
+    .cyber-buttons { 
+        display: flex; 
+        gap: 8px; 
+        margin-top: 2px; 
     } 
     
-    .cyber-btn{ 
-        border:none; 
-        height: 38px;
-        padding:0 14px; 
-        border-radius:10px; 
-        cursor:pointer; 
-        font-size: 12px;
-        font-weight:700; 
-        letter-spacing: 0.5px;
-        transition:all .2s ease; 
+    .cyber-btn { 
+        border: none; 
+        height: 32px;
+        padding: 0 10px; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        font-size: 11px;
+        font-weight: 700; 
+        letter-spacing: 0.4px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease; 
         user-select: none;
         display: flex;
         align-items: center;
         justify-content: center;
     } 
     
-    .start-btn{ 
+    .start-btn { 
         flex: 1.2;
-        background:linear-gradient(135deg, #00f7ff 0%, #00e5a3 100%); 
-        color:#031521; 
+        background: linear-gradient(135deg, #00f7ff 0%, #00e5a3 100%); 
+        color: #031521; 
         font-weight: 800;
-        box-shadow: 0 4px 16px rgba(0, 247, 255, 0.35);
+        box-shadow: 0 3px 12px rgba(0, 247, 255, 0.3);
     } 
     
-    .start-btn:hover{ 
-        transform:translateY(-1.5px); 
-        box-shadow:0 6px 22px rgba(0, 247, 255, 0.55); 
+    .start-btn:hover { 
+        transform: translateY(-1px); 
+        box-shadow: 0 5px 16px rgba(0, 247, 255, 0.5); 
     } 
     
     .start-btn:active {
         transform: translateY(0);
     }
     
-    .stop-btn{ 
+    .stop-btn { 
         flex: 1;
-        background:rgba(255, 45, 85, 0.12); 
-        color:#ff5277; 
+        background: rgba(255, 45, 85, 0.12); 
+        color: #ff5277; 
         border: 1px solid rgba(255, 45, 85, 0.35);
     } 
     
-    .stop-btn:hover{ 
-        background:rgba(255, 45, 85, 0.22); 
+    .stop-btn:hover { 
+        background: rgba(255, 45, 85, 0.2); 
         border-color: rgba(255, 45, 85, 0.6);
-        box-shadow:0 4px 14px rgba(255, 45, 85, 0.25); 
-        transform:translateY(-1.5px); 
+        box-shadow: 0 3px 12px rgba(255, 45, 85, 0.25); 
+        transform: translateY(-1px); 
     } 
 
     .stop-btn:active {
         transform: translateY(0);
     }
     
-    .cyber-status{ 
-        margin-top:2px; 
-        background:rgba(8, 14, 28, 0.7); 
-        border-radius:10px; 
-        padding:9px 12px; 
+    .cyber-status { 
+        margin-top: 1px; 
+        background: rgba(8, 12, 22, 0.75); 
+        border-radius: 8px; 
+        padding: 6px 10px; 
         display: flex;
         align-items: center;
         justify-content: center;
-        text-align:center; 
-        color:#00ff95; 
-        font-size:11.5px; 
+        text-align: center; 
+        color: #00ff95; 
+        font-size: 10.5px; 
         font-weight: 600;
-        border:1px solid rgba(0, 255, 149, 0.25); 
-        min-height: 36px;
-        box-shadow: inset 0 0 8px rgba(0, 255, 149, 0.08);
+        border: 1px solid rgba(0, 255, 149, 0.25); 
+        min-height: 28px;
+        box-shadow: inset 0 0 6px rgba(0, 255, 149, 0.06);
         letter-spacing: 0.3px;
-        transition: all 0.25s ease;
+        transition: color 0.2s ease, border-color 0.2s ease;
     } 
 
     /* Toggle Switch Styles */
     .toggle-container {
         display: flex;
-        background: rgba(8, 14, 28, 0.75);
-        border: 1px solid rgba(0, 247, 255, 0.18);
-        border-radius: 9px;
-        padding: 3px;
-        gap: 3px;
+        background: rgba(8, 12, 22, 0.75);
+        border: 1px solid rgba(0, 247, 255, 0.16);
+        border-radius: 7px;
+        padding: 2px;
+        gap: 2px;
     }
 
     .toggle-option {
         flex: 1;
-        padding: 7px 10px;
+        padding: 5px 8px;
         text-align: center;
         color: #8defff;
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 600;
         cursor: pointer;
-        border-radius: 7px;
-        transition: all 0.2s ease;
+        border-radius: 5px;
+        transition: all 0.15s ease;
         user-select: none;
         white-space: nowrap;
     }
@@ -334,43 +332,43 @@
         background: linear-gradient(135deg, #00f7ff, #00c9db);
         color: #031521;
         font-weight: 700;
-        box-shadow: 0 2px 10px rgba(0, 247, 255, 0.4);
+        box-shadow: 0 2px 8px rgba(0, 247, 255, 0.35);
     }
 
     #overlay-status-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
-        padding: 16px 28px;
-        background: radial-gradient(circle at top, rgba(16, 26, 56, 0.9), rgba(7, 11, 25, 0.96));
-        border: 1px solid rgba(0, 247, 255, 0.22);
-        border-radius: 14px;
+        gap: 4px;
+        padding: 8px 16px;
+        background: rgba(10, 16, 30, 0.94);
+        border: 1px solid rgba(0, 247, 255, 0.25);
+        border-radius: 18px;
         box-shadow: 
-            0 16px 40px rgba(0, 0, 0, 0.6),
-            0 0 20px rgba(0, 247, 255, 0.08);
-        backdrop-filter: blur(16px);
+            0 12px 30px rgba(0, 0, 0, 0.6),
+            0 0 16px rgba(0, 247, 255, 0.1);
         text-transform: none;
+        max-width: 320px;
     }
 
     .overlay-badge {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         font-size: 9px;
         font-weight: 600;
-        letter-spacing: 1.2px;
+        letter-spacing: 0.5px;
         color: #8defff;
         background: rgba(0, 247, 255, 0.08);
-        border: 1px solid rgba(0, 247, 255, 0.2);
-        padding: 3px 10px;
-        border-radius: 12px;
+        border: 1px solid rgba(0, 247, 255, 0.18);
+        padding: 2px 7px;
+        border-radius: 10px;
         text-transform: none;
     }
 
     .overlay-badge-dot {
-        width: 5px;
-        height: 5px;
+        width: 4.5px;
+        height: 4.5px;
         border-radius: 50%;
         background: #00ff95;
         box-shadow: 0 0 6px #00ff95;
@@ -383,18 +381,18 @@
     }
 
     #overlay-live-status {
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 600;
         color: #ffffff;
-        letter-spacing: 0.3px;
-        margin: 2px 0 0;
+        letter-spacing: 0.2px;
+        margin: 1px 0 0;
         text-align: center;
         text-transform: none;
     }
 
     #overlay-sub-status {
-        font-size: 10px;
-        letter-spacing: 0.5px;
+        font-size: 9.5px;
+        letter-spacing: 0.3px;
         color: #8defff;
         opacity: 0.75;
         text-transform: none;
@@ -413,13 +411,14 @@
         overlay.style.cssText = `
             position:fixed;
             inset:0;
-            background:rgba(5, 8, 18, 0.82);
-            backdrop-filter:blur(14px);
+            background:rgba(4, 7, 16, 0.65);
+            backdrop-filter:blur(6px);
             z-index:999998;
             display:none;
             align-items:center;
             justify-content:center;
             font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            pointer-events:none;
         `;
         overlay.innerHTML = `
         <div id="overlay-status-container">
@@ -734,10 +733,19 @@
         }).join(" | ");
     }
 
+    let lastStatusMsg = "";
+    let lastStatusSub = "";
+
     function setStatus(msg, sub = "") {
         const cleanMsg = formatStatusText(msg);
         const cleanSub = formatStatusText(sub);
-        console.log(cleanMsg);
+
+        if (cleanMsg === lastStatusMsg && cleanSub === lastStatusSub) {
+            return;
+        }
+        lastStatusMsg = cleanMsg;
+        lastStatusSub = cleanSub;
+
         if (statusEl) {
             statusEl.innerText = cleanMsg;
             
@@ -748,14 +756,14 @@
             if (isError) {
                 statusEl.style.color = "#ff4d6d";
                 statusEl.style.borderColor = "rgba(255, 77, 109, 0.4)";
-                statusEl.style.boxShadow = "0 0 10px rgba(255, 77, 109, 0.15)";
+                statusEl.style.boxShadow = "0 0 8px rgba(255, 77, 109, 0.15)";
             } else if (isSuccess) {
                 statusEl.style.color = "#00ff95";
                 statusEl.style.borderColor = "rgba(0, 255, 149, 0.4)";
-                statusEl.style.boxShadow = "0 0 10px rgba(0, 255, 149, 0.15)";
+                statusEl.style.boxShadow = "0 0 8px rgba(0, 255, 149, 0.15)";
             } else {
                 statusEl.style.color = "#8defff";
-                statusEl.style.borderColor = "rgba(0, 247, 255, 0.25)";
+                statusEl.style.borderColor = "rgba(0, 247, 255, 0.22)";
                 statusEl.style.boxShadow = "none";
             }
         }
@@ -986,7 +994,7 @@
             }));
 
             overlay.style.display = "flex";
-            setStatus(`Running mixed | Range ₹${selectedMinAmount}-${selectedMaxAmount} & Fixed Bank ₹${selectedMaxAmount}`, "Engine active");
+            setStatus(`Mixed | Range ₹${selectedMinAmount}-${selectedMaxAmount} & Bank ₹${selectedMaxAmount}`, "Engine active");
             runMixedLoop(selectedMinAmount, selectedMaxAmount);
 
         } else {
@@ -1041,13 +1049,16 @@
         let startY = 0;
         let initialLeft = 0;
         let initialTop = 0;
+        let rafPending = false;
+        let targetLeft = 0;
+        let targetTop = 0;
 
         // Restore saved dot position
         const savedDotX = localStorage.getItem("cyber_dot_x");
         const savedDotY = localStorage.getItem("cyber_dot_y");
         if (savedDotX !== null && savedDotY !== null) {
-            const x = Math.max(8, Math.min(window.innerWidth - 56, Number(savedDotX)));
-            const y = Math.max(8, Math.min(window.innerHeight - 56, Number(savedDotY)));
+            const x = Math.max(8, Math.min(window.innerWidth - 45, Number(savedDotX)));
+            const y = Math.max(8, Math.min(window.innerHeight - 45, Number(savedDotY)));
             floatingDot.style.left = x + "px";
             floatingDot.style.top = y + "px";
             floatingDot.style.right = "auto";
@@ -1065,6 +1076,14 @@
             floatingDot.classList.add("is-dragging");
         }
 
+        function updateDotPosition() {
+            floatingDot.style.left = targetLeft + "px";
+            floatingDot.style.top = targetTop + "px";
+            floatingDot.style.right = "auto";
+            floatingDot.style.bottom = "auto";
+            rafPending = false;
+        }
+
         function onPointerMove(e) {
             if (!isDragging) return;
             const clientX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
@@ -1072,20 +1091,20 @@
             const dx = clientX - startX;
             const dy = clientY - startY;
 
-            if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
                 hasMoved = true;
             }
 
             if (hasMoved) {
                 let newLeft = initialLeft + dx;
                 let newTop = initialTop + dy;
-                newLeft = Math.max(8, Math.min(window.innerWidth - floatingDot.offsetWidth - 8, newLeft));
-                newTop = Math.max(8, Math.min(window.innerHeight - floatingDot.offsetHeight - 8, newTop));
+                targetLeft = Math.max(8, Math.min(window.innerWidth - floatingDot.offsetWidth - 8, newLeft));
+                targetTop = Math.max(8, Math.min(window.innerHeight - floatingDot.offsetHeight - 8, newTop));
 
-                floatingDot.style.left = newLeft + "px";
-                floatingDot.style.top = newTop + "px";
-                floatingDot.style.right = "auto";
-                floatingDot.style.bottom = "auto";
+                if (!rafPending) {
+                    rafPending = true;
+                    requestAnimationFrame(updateDotPosition);
+                }
             }
         }
 
@@ -1123,13 +1142,16 @@
         let startY = 0;
         let initialLeft = 0;
         let initialTop = 0;
+        let rafPending = false;
+        let targetLeft = 0;
+        let targetTop = 0;
 
         // Restore saved panel position
         const savedPanelX = localStorage.getItem("cyber_panel_x");
         const savedPanelY = localStorage.getItem("cyber_panel_y");
         if (savedPanelX !== null && savedPanelY !== null) {
-            const px = Math.max(8, Math.min(window.innerWidth - 325, Number(savedPanelX)));
-            const py = Math.max(8, Math.min(window.innerHeight - 380, Number(savedPanelY)));
+            const px = Math.max(8, Math.min(window.innerWidth - 275, Number(savedPanelX)));
+            const py = Math.max(8, Math.min(window.innerHeight - 340, Number(savedPanelY)));
             panel.style.left = px + "px";
             panel.style.top = py + "px";
             panel.style.right = "auto";
@@ -1146,6 +1168,14 @@
             initialTop = rect.top;
         }
 
+        function updatePanelPosition() {
+            panel.style.left = targetLeft + "px";
+            panel.style.top = targetTop + "px";
+            panel.style.right = "auto";
+            panel.style.bottom = "auto";
+            rafPending = false;
+        }
+
         function onPointerMove(e) {
             if (!isDragging) return;
             const clientX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
@@ -1155,13 +1185,13 @@
 
             let newLeft = initialLeft + dx;
             let newTop = initialTop + dy;
-            newLeft = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, newLeft));
-            newTop = Math.max(8, Math.min(window.innerHeight - panel.offsetHeight - 8, newTop));
+            targetLeft = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, newLeft));
+            targetTop = Math.max(8, Math.min(window.innerHeight - panel.offsetHeight - 8, newTop));
 
-            panel.style.left = newLeft + "px";
-            panel.style.top = newTop + "px";
-            panel.style.right = "auto";
-            panel.style.bottom = "auto";
+            if (!rafPending) {
+                rafPending = true;
+                requestAnimationFrame(updatePanelPosition);
+            }
         }
 
         function onPointerUp() {
@@ -1275,8 +1305,7 @@
         async function fetchWorker(workerId) {
             while (isRunning && !isOrderMatched) {
                 try {
-                    setStatus(`Scanning ${typeLabel} orders | ₹${targetAmount}`, "Searching");
-                    console.log(`[FixedSearch Worker ${workerId}] Fetching buyList in parallel for ${typeLabel} ₹${targetAmount}...`);
+                    setStatus(`Scanning ${typeLabel} | ₹${targetAmount}`, "Searching");
 
                     const listRes = await fetch(
                         "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
@@ -1316,8 +1345,8 @@
                         }
                     }
 
-                    // Keep rapid parallel stream active with 180ms cadence per worker
-                    await sleep(180);
+                    // Parallel stream with 380ms cadence per worker
+                    await sleep(380);
 
                 } catch (e) {
                     console.error(`[SearchWorker ${workerId}] error:`, e);
@@ -1327,10 +1356,10 @@
             }
         }
 
-        // Run 2 staggered search workers concurrently for zero-delay continuous searching
+        // Run 2 staggered search workers concurrently for rapid continuous searching
         console.log(`[FixedSearch] Launching 2 parallel search workers for ₹${targetAmount}...`);
         const w1 = fetchWorker(1);
-        await sleep(90);
+        await sleep(180);
         const w2 = fetchWorker(2);
 
         await Promise.all([w1, w2]);
@@ -1346,7 +1375,7 @@
         async function rangeWorker(workerId) {
             while (isRunning && !isOrderMatched) {
                 try {
-                    setStatus(`Scanning orders | ₹${minAmount} - ₹${maxAmount}`, `Matching ${typeLabel}`);
+                    setStatus(`Scanning orders | ₹${minAmount}-${maxAmount}`, `Matching ${typeLabel}`);
 
                     const reqHeaders = {
                         "Accept": "application/json, text/plain, */*",
@@ -1367,8 +1396,6 @@
                         buyerKycId: ""
                     };
 
-                    console.log(`[RangeWorker ${workerId}] Fetching match/start in parallel for ${typeLabel}...`);
-
                     const response = await fetch(
                         "https://apiweb.apiarbpay.com/ar-wallet/smartRangeBuy/match/start",
                         {
@@ -1379,10 +1406,6 @@
                     );
 
                     const data = await response.json();
-                    console.log(`[RangeWorker ${workerId}] Match response:`, data);
-                    if (data?.data?.buyResult) {
-                        console.table([data.data.buyResult]);
-                    }
 
                     const matchResult = data?.data?.matchResult;
                     const matchInfoStatus = String(data?.data?.matchInfo?.status || "").toUpperCase();
@@ -1407,13 +1430,13 @@
                     if (!isOrderMatched) {
                         if (String(data?.code) === "1") {
                             const statusText = matchResult ? matchResult.replace(/_/g, " ") : (data?.msg || "Searching");
-                            setStatus(`${statusText} | ₹${minAmount} - ₹${maxAmount}`, "Scanning active");
+                            setStatus(`${statusText} | ₹${minAmount}-${maxAmount}`, "Scanning active");
                         } else {
                             setStatus(`${data?.msg || "Matching..."}`, "Searching");
                         }
                     }
 
-                    await sleep(350);
+                    await sleep(420);
 
                 } catch (err) {
                     console.error(`[RangeWorker ${workerId}] error:`, err);
@@ -1425,7 +1448,7 @@
 
         console.log(`[RangeLoop] Launching 2 parallel range workers for ${typeLabel} ₹${minAmount}-${maxAmount}`);
         const w1 = rangeWorker(1);
-        await sleep(150);
+        await sleep(210);
         const w2 = rangeWorker(2);
 
         await Promise.all([w1, w2]);
@@ -1484,9 +1507,6 @@
                     );
 
                     const data = await response.json();
-                    if (data?.data?.buyResult) {
-                        console.table([data.data.buyResult]);
-                    }
 
                     const matchResult = data?.data?.matchResult;
                     const matchInfoStatus = String(data?.data?.matchInfo?.status || "").toUpperCase();
@@ -1503,10 +1523,10 @@
 
                     if (!isOrderMatched) {
                         const statusText = matchResult ? matchResult.replace(/_/g, " ") : (data?.msg || "Searching");
-                        setStatus(`Mixed | Range ${typeLabel}: ${statusText} | ₹${minAmount}-${maxAmount}`, "Scanning active");
+                        setStatus(`Mixed | ${typeLabel}: ${statusText} | ₹${minAmount}-${maxAmount}`, "Scanning active");
                     }
 
-                    await sleep(350);
+                    await sleep(480);
 
                 } catch (err) {
                     console.error(`[MixedRange ${typeLabel}] error:`, err);
@@ -1523,7 +1543,7 @@
             processedOrders.add(orderId);
 
             console.log(`[MixedFixedBank] Candidate found! Attempting order ${orderId} | ₹${order.amount}`);
-            setStatus(`Mixed | Trying Fixed Bank ₹${order.amount}`, "Processing");
+            setStatus(`Mixed | Trying Bank ₹${order.amount}`, "Processing");
 
             try {
                 const payload = {
@@ -1596,7 +1616,6 @@
         async function fixedBankWorker() {
             while (isRunning && !isOrderMatched) {
                 try {
-                    console.log(`[MixedFixedBank] Fetching buyList in parallel for ₹${fixedTargetAmount}...`);
                     const listRes = await fetch(
                         "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
                             method: "POST",
@@ -1630,7 +1649,7 @@
                         }
                     }
 
-                    await sleep(250);
+                    await sleep(420);
 
                 } catch (e) {
                     console.error("[MixedFixedBank] Search error:", e);
@@ -1640,8 +1659,8 @@
         }
 
         // Start all 3 parallel streams: Range Upi, Range Bank, and Fixed Bank
-        setStatus(`Mixed running | Range ₹${minAmount}-${maxAmount} & Fixed Bank ₹${fixedTargetAmount}`, "Engine active");
-        console.log(`[MixedLoop] Starting 3 simultaneous parallel network streams: Range UPI, Range Bank, and Fixed Bank (${fixedTargetAmount})`);
+        setStatus(`Mixed | Range ₹${minAmount}-${maxAmount} & Bank ₹${fixedTargetAmount}`, "Engine active");
+        console.log(`[MixedLoop] Starting 3 simultaneous parallel streams: Range UPI, Range Bank, and Fixed Bank (${fixedTargetAmount})`);
 
         const streams = [
             rangeWorker(1, "Upi"),
