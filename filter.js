@@ -947,11 +947,6 @@
                 return;
             }
 
-            if (!isPremiumMember && amount < 2000) {
-                setStatus("Minimum order value is 2000");
-                return;
-            }
-
             isRunning = true;
             floatingDot.classList.add("running");
             localStorage.setItem("cyber_auto_running", "true");
@@ -1281,6 +1276,7 @@
             while (isRunning && !isOrderMatched) {
                 try {
                     setStatus(`Scanning ${typeLabel} orders | ₹${targetAmount}`, "Searching");
+                    console.log(`[FixedSearch Worker ${workerId}] Fetching buyList in parallel for ${typeLabel} ₹${targetAmount}...`);
 
                     const listRes = await fetch(
                         "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
@@ -1320,20 +1316,21 @@
                         }
                     }
 
-                    // Keep rapid parallel stream active with 250ms cadence per worker
-                    await sleep(250);
+                    // Keep rapid parallel stream active with 180ms cadence per worker
+                    await sleep(180);
 
                 } catch (e) {
                     console.error(`[SearchWorker ${workerId}] error:`, e);
                     setStatus("Connection error | Retrying...", "Reconnecting");
-                    await sleep(500);
+                    await sleep(400);
                 }
             }
         }
 
         // Run 2 staggered search workers concurrently for zero-delay continuous searching
+        console.log(`[FixedSearch] Launching 2 parallel search workers for ₹${targetAmount}...`);
         const w1 = fetchWorker(1);
-        await sleep(125);
+        await sleep(90);
         const w2 = fetchWorker(2);
 
         await Promise.all([w1, w2]);
@@ -1343,83 +1340,95 @@
     // RANGE SEARCH LOOP (SMART)
     // =========================
     async function runRangeLoop(minAmount, maxAmount, type) {
-        while (isRunning) {
+        const typeLabel = type === 1 ? "Upi" : "Bank";
+        let isOrderMatched = false;
 
-            try {
+        async function rangeWorker(workerId) {
+            while (isRunning && !isOrderMatched) {
+                try {
+                    setStatus(`Scanning orders | ₹${minAmount} - ₹${maxAmount}`, `Matching ${typeLabel}`);
 
-                const typeLabel = type === 1 ? "Upi" : "Bank";
-                setStatus(`Scanning orders | ₹${minAmount} - ₹${maxAmount}`, `Matching ${typeLabel}`);
+                    const reqHeaders = {
+                        "Accept": "application/json, text/plain, */*",
+                        "Content-Type": "application/json",
+                        "language": "1",
+                        "authorization": `Bearer ${token}`,
+                        "memberId": String(memberId),
+                        "deviceId": "undefined",
+                        "deviceType": "3",
+                        "deviceCode": deviceCode
+                    };
 
-                const reqHeaders = {
-                    "Accept": "application/json, text/plain, */*",
-                    "Content-Type": "application/json",
-                    "language": "1",
-                    "authorization": `Bearer ${token}`,
-                    "memberId": String(memberId),
-                    "deviceId": "undefined",
-                    "deviceType": "3",
-                    "deviceCode": deviceCode
-                };
+                    const reqBody = {
+                        maxAmount: maxAmount,
+                        minAmount: minAmount,
+                        orderType: type,
+                        buyBankCode: "supermoney",
+                        buyerKycId: ""
+                    };
 
-                const reqBody = {
-                    maxAmount: maxAmount,
-                    minAmount: minAmount,
-                    orderType: type,
-                    buyBankCode: "supermoney",
-                    buyerKycId: ""
-                };
+                    console.log(`[RangeWorker ${workerId}] Fetching match/start in parallel for ${typeLabel}...`);
 
-                const response = await fetch(
-                    "https://apiweb.apiarbpay.com/ar-wallet/smartRangeBuy/match/start",
-                    {
-                        method: "POST",
-                        headers: reqHeaders,
-                        body: JSON.stringify(reqBody)
+                    const response = await fetch(
+                        "https://apiweb.apiarbpay.com/ar-wallet/smartRangeBuy/match/start",
+                        {
+                            method: "POST",
+                            headers: reqHeaders,
+                            body: JSON.stringify(reqBody)
+                        }
+                    );
+
+                    const data = await response.json();
+                    console.log(`[RangeWorker ${workerId}] Match response:`, data);
+                    if (data?.data?.buyResult) {
+                        console.table([data.data.buyResult]);
                     }
-                );
 
-                const data = await response.json();
-                console.log("Match response:", data);
-                if (data?.data?.buyResult) {
-                    console.table([data.data.buyResult]);
+                    const matchResult = data?.data?.matchResult;
+                    const matchInfoStatus = String(data?.data?.matchInfo?.status || "").toUpperCase();
+                    const isMatched = String(data?.code) === "1" && (
+                        (matchResult === "MATCHED" && matchInfoStatus === "COMPLETED") ||
+                        matchResult === "MATCHED" ||
+                        Boolean(data?.data?.buyResult)
+                    );
+
+                    if (isMatched && !isOrderMatched) {
+                        isOrderMatched = true;
+                        isRunning = false;
+                        setStatus("Order matched | Refreshing in 2s...", "Order completed");
+                        console.log("Match success! Playing ringtone for 2s and refreshing page...");
+                        localStorage.setItem("cyber_auto_running", "true");
+                        playRingtone(2000);
+                        await sleep(2000);
+                        location.reload();
+                        return;
+                    }
+
+                    if (!isOrderMatched) {
+                        if (String(data?.code) === "1") {
+                            const statusText = matchResult ? matchResult.replace(/_/g, " ") : (data?.msg || "Searching");
+                            setStatus(`${statusText} | ₹${minAmount} - ₹${maxAmount}`, "Scanning active");
+                        } else {
+                            setStatus(`${data?.msg || "Matching..."}`, "Searching");
+                        }
+                    }
+
+                    await sleep(350);
+
+                } catch (err) {
+                    console.error(`[RangeWorker ${workerId}] error:`, err);
+                    setStatus("Connection error | Retrying...", "Reconnecting");
+                    await sleep(500);
                 }
-
-                // Check match condition:
-                // Response matched: {"code":"1","data":{"matchResult":"MATCHED","matchInfo":{"status":"COMPLETED"
-                const matchResult = data?.data?.matchResult;
-                const matchInfoStatus = String(data?.data?.matchInfo?.status || "").toUpperCase();
-                const isMatched = String(data?.code) === "1" && (
-                    (matchResult === "MATCHED" && matchInfoStatus === "COMPLETED") ||
-                    matchResult === "MATCHED" ||
-                    Boolean(data?.data?.buyResult)
-                );
-
-                if (isMatched) {
-                    setStatus("Order matched | Refreshing in 2s...", "Order completed");
-                    console.log("Match success! Playing ringtone for 2s and refreshing page...");
-                    localStorage.setItem("cyber_auto_running", "true");
-                    playRingtone(2000);
-                    await sleep(2000);
-                    location.reload();
-                    return;
-                }
-
-                // If not matched, update live status and keep running
-                if (String(data?.code) === "1") {
-                    const statusText = matchResult ? matchResult.replace(/_/g, " ") : (data?.msg || "Searching");
-                    setStatus(`${statusText} | ₹${minAmount} - ₹${maxAmount}`, "Scanning active");
-                } else {
-                    setStatus(`${data?.msg || "Matching..."}`, "Searching");
-                }
-
-                await sleep(1000);
-
-            } catch (err) {
-                console.error("Match loop error:", err);
-                setStatus("Connection error | Retrying...", "Reconnecting");
-                await sleep(1500);
             }
         }
+
+        console.log(`[RangeLoop] Launching 2 parallel range workers for ${typeLabel} ₹${minAmount}-${maxAmount}`);
+        const w1 = rangeWorker(1);
+        await sleep(150);
+        const w2 = rangeWorker(2);
+
+        await Promise.all([w1, w2]);
     }
 
     // ===============================================
@@ -1497,11 +1506,11 @@
                         setStatus(`Mixed | Range ${typeLabel}: ${statusText} | ₹${minAmount}-${maxAmount}`, "Scanning active");
                     }
 
-                    await sleep(1000);
+                    await sleep(350);
 
                 } catch (err) {
                     console.error(`[MixedRange ${typeLabel}] error:`, err);
-                    await sleep(1200);
+                    await sleep(500);
                 }
             }
         }
@@ -1587,6 +1596,7 @@
         async function fixedBankWorker() {
             while (isRunning && !isOrderMatched) {
                 try {
+                    console.log(`[MixedFixedBank] Fetching buyList in parallel for ₹${fixedTargetAmount}...`);
                     const listRes = await fetch(
                         "https://apiweb.apiarbpay.com/ar-wallet/buyCenter/buyList", {
                             method: "POST",
@@ -1620,26 +1630,24 @@
                         }
                     }
 
-                    await sleep(350);
+                    await sleep(250);
 
                 } catch (e) {
                     console.error("[MixedFixedBank] Search error:", e);
-                    await sleep(600);
+                    await sleep(500);
                 }
             }
         }
 
         // Start all 3 parallel streams: Range Upi, Range Bank, and Fixed Bank
         setStatus(`Mixed running | Range ₹${minAmount}-${maxAmount} & Fixed Bank ₹${fixedTargetAmount}`, "Engine active");
+        console.log(`[MixedLoop] Starting 3 simultaneous parallel network streams: Range UPI, Range Bank, and Fixed Bank (${fixedTargetAmount})`);
 
         const streams = [
             rangeWorker(1, "Upi"),
-            (async () => { await sleep(150); return rangeWorker(2, "Bank"); })()
+            rangeWorker(2, "Bank"),
+            fixedBankWorker()
         ];
-
-        if (isPremiumMember || fixedTargetAmount >= 2000) {
-            streams.push((async () => { await sleep(250); return fixedBankWorker(); })());
-        }
 
         await Promise.all(streams);
     }
