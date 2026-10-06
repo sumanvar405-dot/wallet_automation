@@ -9,68 +9,26 @@
         position:fixed; 
         right:18px; 
         bottom:18px; 
-        width:225px; 
+        width:250px; 
         z-index:999999; 
-        background:rgba(10, 15, 30, 0.95); 
+        background:rgba(10, 15, 30, 0.94); 
         border:1px solid rgba(0, 247, 255, 0.22); 
-        border-radius:10px; 
+        border-radius:12px; 
         backdrop-filter:blur(20px); 
         box-shadow: 
-            0 12px 36px rgba(0, 0, 0, 0.6),
-            0 0 14px rgba(0, 247, 255, 0.08); 
+            0 12px 36px rgba(0, 0, 0, 0.55),
+            0 0 15px rgba(0, 247, 255, 0.08); 
         overflow:hidden; 
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
         user-select: none;
-        display: none;
     } 
-
-    #cyberFloatingDot {
-        position: fixed;
-        right: 18px;
-        bottom: 18px;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: rgba(10, 15, 30, 0.94);
-        border: 1px solid rgba(0, 247, 255, 0.4);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 247, 255, 0.25);
-        backdrop-filter: blur(14px);
-        z-index: 999999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-        user-select: none;
-    }
-
-    #cyberFloatingDot:hover {
-        transform: scale(1.12);
-        border-color: #00f7ff;
-        box-shadow: 0 0 14px rgba(0, 247, 255, 0.6);
-    }
-
-    .cyber-floating-core {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #00f7ff;
-        box-shadow: 0 0 6px #00f7ff;
-        transition: all 0.3s ease;
-    }
-
-    #cyberFloatingDot.running .cyber-floating-core {
-        background: #00ff95;
-        box-shadow: 0 0 10px #00ff95;
-        animation: cyberPulse 1.4s infinite ease-in-out;
-    }
-
+    
     .cyber-header{ 
-        padding:5px 9px; 
+        padding:7px 12px; 
         background:linear-gradient(90deg, rgba(0, 247, 255, 0.12), rgba(122, 0, 255, 0.12)); 
         color:#00f7ff; 
-        font-size: 10px;
-        letter-spacing: 0.5px;
+        font-size: 10.5px;
+        letter-spacing: 0.6px;
         font-weight:600; 
         display: flex;
         align-items: center;
@@ -87,34 +45,15 @@
         background: #00ff95;
         box-shadow: 0 0 6px #00ff95;
     }
-
-    .cyber-min-btn {
-        background: transparent;
-        border: none;
-        color: #8defff;
-        font-size: 14px;
-        line-height: 1;
-        cursor: pointer;
-        padding: 0 4px;
-        border-radius: 3px;
-        opacity: 0.75;
-        transition: all 0.2s ease;
-    }
-
-    .cyber-min-btn:hover {
-        color: #ffffff;
-        opacity: 1;
-        background: rgba(0, 247, 255, 0.15);
-    }
     
     .cyber-body{ 
-        padding:7px 9px; 
+        padding:9px 11px; 
     } 
 
     .cyber-grid {
         display: flex;
-        gap: 6px;
-        margin-bottom: 5px;
+        gap: 8px;
+        margin-bottom: 7px;
     }
 
     .cyber-col {
@@ -124,8 +63,8 @@
     
     .cyber-label{ 
         color:#8defff; 
-        font-size:9px; 
-        margin-bottom:2px; 
+        font-size:9.5px; 
+        margin-bottom:3px; 
         display:block; 
         text-transform: none;
         letter-spacing: 0.3px;
@@ -136,34 +75,34 @@
     .cyber-input{ 
         width:100%; 
         box-sizing:border-box; 
-        padding:4px 6px; 
+        padding:5px 8px; 
         background:rgba(17, 24, 39, 0.6); 
         border:1px solid rgba(0, 247, 255, 0.25); 
-        border-radius:6px; 
+        border-radius:7px; 
         color:#fff; 
-        font-size:11px; 
+        font-size:12px; 
         outline:none; 
         transition: all 0.25s ease;
     } 
     
     .cyber-input:focus{ 
         border-color: #00f7ff;
-        box-shadow:0 0 8px rgba(0, 247, 255, 0.25); 
+        box-shadow:0 0 10px rgba(0, 247, 255, 0.25); 
     } 
     
     .cyber-buttons{ 
         display:flex; 
-        gap:5px; 
-        margin-top:5px; 
+        gap:6px; 
+        margin-top:7px; 
     } 
     
     .cyber-btn{ 
         flex:1; 
         border:none; 
-        padding:5px 8px; 
-        border-radius:6px; 
+        padding:6px 10px; 
+        border-radius:7px; 
         cursor:pointer; 
-        font-size: 10px;
+        font-size: 10.5px;
         font-weight:600; 
         transition:all .2s ease; 
         text-transform: none;
@@ -195,18 +134,18 @@
     } 
     
     .cyber-status{ 
-        margin-top:5px; 
+        margin-top:7px; 
         background:rgba(17, 24, 39, 0.6); 
-        border-radius:6px; 
-        padding:3px 6px; 
+        border-radius:7px; 
+        padding:5px 8px; 
         display: flex;
         align-items: center;
         justify-content: center;
         text-align:center; 
         color:#00ff95; 
-        font-size:9.5px; 
+        font-size:10px; 
         border:1px solid rgba(0, 255, 149, 0.25); 
-        min-height: 22px;
+        min-height: 26px;
         box-shadow: inset 0 0 5px rgba(0, 255, 149, 0.08);
         text-transform: none;
         letter-spacing: 0.2px;
@@ -217,26 +156,25 @@
     .toggle-container {
         display: flex;
         background: rgba(17, 24, 39, 0.7);
-        border: 1px solid rgba(0, 247, 255, 0.18);
-        border-radius: 6px;
-        margin-bottom: 5px;
-        padding: 1.5px;
-        gap: 1.5px;
+        border: 1px solid rgba(0, 247, 255, 0.2);
+        border-radius: 7px;
+        margin-bottom: 7px;
+        padding: 2px;
+        gap: 2px;
     }
 
     .toggle-option {
         flex: 1;
-        padding: 3px 5px;
+        padding: 4px 6px;
         text-align: center;
         color: #8defff;
-        font-size: 9.5px;
+        font-size: 10px;
         font-weight: 500;
         cursor: pointer;
-        border-radius: 4px;
+        border-radius: 5px;
         transition: all 0.2s ease;
         user-select: none;
         white-space: nowrap;
-        text-transform: none;
     }
 
     .toggle-option.active {
@@ -344,33 +282,20 @@
 
     const overlayLiveStatus = document.getElementById("overlay-live-status");
 
-    let floatingDot = document.getElementById("cyberFloatingDot");
-    if (!floatingDot) {
-        floatingDot = document.createElement("div");
-        floatingDot.id = "cyberFloatingDot";
-        floatingDot.title = "Open auto buy panel";
-        floatingDot.innerHTML = `<span class="cyber-floating-core"></span>`;
-        document.body.appendChild(floatingDot);
-    }
-
     let panel = document.getElementById("cyberPanel");
     if (!panel) {
         panel = document.createElement("div");
         panel.id = "cyberPanel";
-        panel.style.display = "none";
         panel.innerHTML = `
         <div class="cyber-header"> 
-            <div style="display:flex;align-items:center;gap:5px;">
-                <span class="cyber-header-dot"></span>
-                <span>Auto buy</span>
-            </div>
-            <button id="cyberMinBtn" class="cyber-min-btn" title="Minimize to dot">−</button>
+            <span>Auto Buy</span>
+            <span class="cyber-header-dot"></span>
         </div> 
     
         <div class="cyber-body"> 
             
-            <div style="margin-bottom: 5px;">
-                <label class="cyber-label">Search mode</label>
+            <div style="margin-bottom: 7px;">
+                <label class="cyber-label">Search Mode</label>
                 <div class="toggle-container" id="modeToggle" style="margin-bottom:0;">
                     <div class="toggle-option active" data-mode="range">Range</div>
                     <div class="toggle-option" data-mode="fixed">Fixed</div>
@@ -379,16 +304,16 @@
             </div>
 
             <!-- Payment Type Section (Hidden in Mixed Mode) -->
-            <div id="paymentSection" style="margin-bottom: 5px;">
+            <div id="paymentSection" style="margin-bottom: 7px;">
                 <label class="cyber-label">Payment</label>
                 <div class="toggle-container" id="orderTypeToggle" style="margin-bottom:0;">
-                    <div class="toggle-option active" data-value="1">Upi</div>
+                    <div class="toggle-option active" data-value="1">UPI</div>
                     <div class="toggle-option" data-value="2">Bank</div>
                 </div>
             </div>
 
             <!-- Fixed Amount Section -->
-            <div id="fixedSection" style="display:none; margin-bottom: 5px;">
+            <div id="fixedSection" style="display:none; margin-bottom: 7px;">
                 <label class="cyber-label">Amount</label> 
                 <input 
                     type="text" 
@@ -401,7 +326,7 @@
             </div>
 
             <!-- Range Search Section -->
-            <div id="rangeSection" style="margin-bottom: 5px;">
+            <div id="rangeSection" style="margin-bottom: 7px;">
                 <div class="cyber-grid" style="margin-bottom: 0;">
                     <div class="cyber-col">
                         <label class="cyber-label">From</label> 
@@ -455,29 +380,6 @@
     
         </div>`;
         document.body.appendChild(panel);
-    }
-
-    const minBtn = document.getElementById("cyberMinBtn");
-
-    function showPanel() {
-        panel.style.display = "block";
-        floatingDot.style.display = "none";
-        localStorage.setItem("cyber_panel_visible", "true");
-    }
-
-    function hidePanel() {
-        panel.style.display = "none";
-        floatingDot.style.display = "flex";
-        localStorage.setItem("cyber_panel_visible", "false");
-    }
-
-    floatingDot.onclick = showPanel;
-    if (minBtn) minBtn.onclick = hidePanel;
-
-    if (localStorage.getItem("cyber_panel_visible") === "true") {
-        showPanel();
-    } else {
-        hidePanel();
     }
 
     const statusEl = document.getElementById("cyberStatus");
@@ -579,7 +481,7 @@
             opt.classList.add("active");
             selectedOrderType = Number(opt.dataset.value);
             localStorage.setItem("cyber_order_type", String(selectedOrderType));
-            console.log("Selected Order Type:", selectedOrderType === 1 ? "Upi" : "Bank");
+            console.log("Selected Order Type:", selectedOrderType === 1 ? "UPI" : "BANK");
         };
     });
 
@@ -623,6 +525,7 @@
             if (alpha.length > 1 && alpha === alpha.toUpperCase()) {
                 let lower = trimmed.toLowerCase();
                 let converted = lower.replace(/\b[a-z]/g, c => c.toUpperCase());
+                converted = converted.replace(/\bUpi\b/g, "UPI");
                 return converted;
             }
             return trimmed;
@@ -833,7 +736,7 @@
     startBtn.onclick = () => {
         if (isRunning) return;
 
-        const typeLabel = selectedOrderType === 1 ? "Upi" : "Bank";
+        const typeLabel = selectedOrderType === 1 ? "UPI" : "BANK";
 
         if (selectedMode === "fixed") {
             const amount = Number(amountInput.value);
@@ -848,7 +751,6 @@
             }
 
             isRunning = true;
-            floatingDot.classList.add("running");
             localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "fixed");
             localStorage.setItem("cyber_fixed_amount", String(amount));
@@ -859,7 +761,7 @@
             runLegacyLoop(amount, selectedOrderType);
 
         } else if (selectedMode === "mixed") {
-            // Mixed Search Mode (Parallel Range for Upi & Bank + Fixed for Bank only with To amount)
+            // Mixed Search Mode (Parallel Range for UPI & Bank + Fixed for Bank only with To amount)
             const fromVal = Number(rangeFromInput?.value || selectedMinAmount);
             const toVal = Number(rangeToInput?.value || selectedMaxAmount);
 
@@ -877,7 +779,6 @@
             selectedMaxAmount = toVal;
 
             isRunning = true;
-            floatingDot.classList.add("running");
             localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "mixed");
             localStorage.setItem("cyber_selected_range", JSON.stringify({
@@ -886,7 +787,7 @@
             }));
 
             overlay.style.display = "flex";
-            setStatus(`Running mixed | Range ₹${selectedMinAmount}-${selectedMaxAmount} & Fixed Bank ₹${selectedMaxAmount}`, "Engine active");
+            setStatus(`Running Mixed | Range ₹${selectedMinAmount}-${selectedMaxAmount} & Fixed Bank ₹${selectedMaxAmount}`, "Engine active");
             runMixedLoop(selectedMinAmount, selectedMaxAmount);
 
         } else {
@@ -908,7 +809,6 @@
             selectedMaxAmount = toVal;
 
             isRunning = true;
-            floatingDot.classList.add("running");
             localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "range");
             localStorage.setItem("cyber_selected_range", JSON.stringify({
@@ -925,7 +825,6 @@
 
     stopBtn.onclick = () => {
         isRunning = false;
-        floatingDot.classList.remove("running");
         localStorage.setItem("cyber_auto_running", "false");
         overlay.style.display = "none";
         setStatus("System idle", "Stopped");
@@ -963,7 +862,7 @@
     // FIXED AMOUNT LOOP (PARALLEL SEARCH & FAST BOOK)
     // ===============================================
     async function runLegacyLoop(targetAmount, type) {
-        const typeLabel = type === 1 ? "Upi" : "Bank";
+        const typeLabel = type === 1 ? "UPI" : "Bank";
         const processedOrders = new Set();
         let isOrderMatched = false;
 
@@ -1120,7 +1019,7 @@
 
             try {
 
-                const typeLabel = type === 1 ? "Upi" : "Bank";
+                const typeLabel = type === 1 ? "UPI" : "Bank";
                 setStatus(`Scanning orders | ₹${minAmount} - ₹${maxAmount}`, `Matching ${typeLabel}`);
 
                 const reqHeaders = {
@@ -1402,11 +1301,11 @@
             }
         }
 
-        // Start all 3 parallel streams: Range Upi, Range Bank, and Fixed Bank
-        setStatus(`Mixed running | Range ₹${minAmount}-${maxAmount} & Fixed Bank ₹${fixedTargetAmount}`, "Engine active");
+        // Start all 3 parallel streams: Range UPI, Range Bank, and Fixed Bank
+        setStatus(`Mixed Running | Range ₹${minAmount}-${maxAmount} & Fixed Bank ₹${fixedTargetAmount}`, "Engine active");
 
         const streams = [
-            rangeWorker(1, "Upi"),
+            rangeWorker(1, "UPI"),
             (async () => { await sleep(150); return rangeWorker(2, "Bank"); })()
         ];
 
@@ -1421,7 +1320,6 @@
     // AUTO-RESUME CHECK
     // =========================
     if (localStorage.getItem("cyber_auto_running") === "true") {
-        floatingDot.classList.add("running");
         console.log("Auto-run is enabled. Starting automation in 800ms...");
         setTimeout(() => {
             if (localStorage.getItem("cyber_auto_running") === "true" && !isRunning) {
