@@ -469,8 +469,8 @@
             <div class="cyber-section" id="paymentSection">
                 <label class="cyber-label">Payment</label>
                 <div class="toggle-container" id="orderTypeToggle">
-                    <div class="toggle-option active" data-value="1">Upi</div>
-                    <div class="toggle-option" data-value="2">Bank</div>
+                    <div class="toggle-option active" data-value="1">UPI</div>
+                    <div class="toggle-option" data-value="2">BANK</div>
                 </div>
             </div>
 
@@ -673,7 +673,7 @@
             opt.classList.add("active");
             selectedOrderType = Number(opt.dataset.value);
             localStorage.setItem("cyber_order_type", String(selectedOrderType));
-            console.log("Selected Order Type:", selectedOrderType === 1 ? "Upi" : "Bank");
+            console.log("Selected Order Type:", selectedOrderType === 1 ? "UPI" : "BANK");
         };
     });
 
@@ -714,12 +714,13 @@
 
             // Check if segment is in all-caps (excluding symbols and numbers)
             const alpha = trimmed.replace(/[^a-zA-Z]/g, "");
+            let res = trimmed;
             if (alpha.length > 1 && alpha === alpha.toUpperCase()) {
                 let lower = trimmed.toLowerCase();
-                let converted = lower.replace(/\b[a-z]/g, c => c.toUpperCase());
-                return converted;
+                res = lower.replace(/\b[a-z]/g, c => c.toUpperCase());
             }
-            return trimmed;
+            // Always keep UPI and BANK in all caps
+            return res.replace(/\bupi\b/gi, "UPI").replace(/\bbank\b/gi, "BANK");
         }).join(" | ");
     }
 
@@ -936,7 +937,7 @@
     startBtn.onclick = () => {
         if (isRunning) return;
 
-        const typeLabel = selectedOrderType === 1 ? "Upi" : "Bank";
+        const typeLabel = selectedOrderType === 1 ? "UPI" : "BANK";
 
         if (selectedMode === "fixed") {
             const amount = Number(amountInput.value);
@@ -1127,7 +1128,7 @@
     // FIXED AMOUNT LOOP (PARALLEL SEARCH & FAST BOOK)
     // ===============================================
     async function runLegacyLoop(targetAmount, type) {
-        const typeLabel = type === 1 ? "Upi" : "Bank";
+        const typeLabel = type === 1 ? "UPI" : "BANK";
         const processedOrders = new Set();
         let isOrderMatched = false;
 
@@ -1281,7 +1282,7 @@
     // RANGE SEARCH LOOP (SMART)
     // =========================
     async function runRangeLoop(minAmount, maxAmount, type) {
-        const typeLabel = type === 1 ? "Upi" : "Bank";
+        const typeLabel = type === 1 ? "UPI" : "BANK";
         let isOrderMatched = false;
 
         async function rangeWorker(workerId) {
@@ -1570,13 +1571,13 @@
             }
         }
 
-        // Start all 3 parallel streams: Range Upi, Range Bank, and Fixed Bank
+        // Start all 3 parallel streams: Range UPI, Range BANK, and Fixed BANK
         setStatus(`Mixed | Range ₹${minAmount}-${maxAmount} & Bank ₹${fixedTargetAmount}`, "Engine active");
-        console.log(`[MixedLoop] Starting 3 simultaneous parallel streams: Range UPI, Range Bank, and Fixed Bank (${fixedTargetAmount})`);
+        console.log(`[MixedLoop] Starting 3 simultaneous parallel streams: Range UPI, Range BANK, and Fixed BANK (${fixedTargetAmount})`);
 
         const streams = [
-            rangeWorker(1, "Upi"),
-            rangeWorker(2, "Bank"),
+            rangeWorker(1, "UPI"),
+            rangeWorker(2, "BANK"),
             fixedBankWorker()
         ];
 
