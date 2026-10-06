@@ -117,12 +117,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        cursor: grab; 
         user-select: none;
-    } 
-
-    .cyber-header:active {
-        cursor: grabbing;
     }
 
     .cyber-header-title {
@@ -556,15 +551,10 @@
         panel.style.display = "block";
         floatingDot.style.display = "none";
         localStorage.setItem("cyber_panel_visible", "true");
-
-        const savedPanelX = localStorage.getItem("cyber_panel_x");
-        const savedPanelY = localStorage.getItem("cyber_panel_y");
-        if (savedPanelX !== null && savedPanelY !== null) {
-            panel.style.left = savedPanelX + "px";
-            panel.style.top = savedPanelY + "px";
-            panel.style.right = "auto";
-            panel.style.bottom = "auto";
-        }
+        panel.style.left = "auto";
+        panel.style.top = "auto";
+        panel.style.right = "20px";
+        panel.style.bottom = "20px";
     }
 
     function hidePanel() {
@@ -1132,84 +1122,6 @@
         window.addEventListener("touchend", onPointerUp);
     })();
 
-    // ===================================
-    // MOVABLE PANEL HEADER DRAG LOGIC
-    // ===================================
-    (function initPanelDrag() {
-        const header = panel.querySelector(".cyber-header");
-        let isDragging = false;
-        let startX = 0;
-        let startY = 0;
-        let initialLeft = 0;
-        let initialTop = 0;
-        let rafPending = false;
-        let targetLeft = 0;
-        let targetTop = 0;
-
-        // Restore saved panel position
-        const savedPanelX = localStorage.getItem("cyber_panel_x");
-        const savedPanelY = localStorage.getItem("cyber_panel_y");
-        if (savedPanelX !== null && savedPanelY !== null) {
-            const px = Math.max(8, Math.min(window.innerWidth - 275, Number(savedPanelX)));
-            const py = Math.max(8, Math.min(window.innerHeight - 340, Number(savedPanelY)));
-            panel.style.left = px + "px";
-            panel.style.top = py + "px";
-            panel.style.right = "auto";
-            panel.style.bottom = "auto";
-        }
-
-        function onPointerDown(e) {
-            if (e.target.closest("#cyberMinBtn")) return;
-            isDragging = true;
-            startX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
-            startY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
-            const rect = panel.getBoundingClientRect();
-            initialLeft = rect.left;
-            initialTop = rect.top;
-        }
-
-        function updatePanelPosition() {
-            panel.style.left = targetLeft + "px";
-            panel.style.top = targetTop + "px";
-            panel.style.right = "auto";
-            panel.style.bottom = "auto";
-            rafPending = false;
-        }
-
-        function onPointerMove(e) {
-            if (!isDragging) return;
-            const clientX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
-            const clientY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
-            const dx = clientX - startX;
-            const dy = clientY - startY;
-
-            let newLeft = initialLeft + dx;
-            let newTop = initialTop + dy;
-            targetLeft = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, newLeft));
-            targetTop = Math.max(8, Math.min(window.innerHeight - panel.offsetHeight - 8, newTop));
-
-            if (!rafPending) {
-                rafPending = true;
-                requestAnimationFrame(updatePanelPosition);
-            }
-        }
-
-        function onPointerUp() {
-            if (!isDragging) return;
-            isDragging = false;
-            const rect = panel.getBoundingClientRect();
-            localStorage.setItem("cyber_panel_x", String(rect.left));
-            localStorage.setItem("cyber_panel_y", String(rect.top));
-        }
-
-        header.addEventListener("mousedown", onPointerDown);
-        window.addEventListener("mousemove", onPointerMove);
-        window.addEventListener("mouseup", onPointerUp);
-
-        header.addEventListener("touchstart", onPointerDown, { passive: true });
-        window.addEventListener("touchmove", onPointerMove, { passive: true });
-        window.addEventListener("touchend", onPointerUp);
-    })();
 
     // ===============================================
     // FIXED AMOUNT LOOP (PARALLEL SEARCH & FAST BOOK)
