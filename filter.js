@@ -327,10 +327,31 @@
 
             <!-- Range Search Section -->
             <div id="rangeSection" style="margin-bottom: 7px;">
-                <label class="cyber-label">Select Range</label> 
-                <div class="toggle-container" id="rangeToggle" style="margin-bottom:0;">
-                    <div class="toggle-option active" data-min="700" data-max="1000">700 - 1000</div>
-                    <div class="toggle-option" data-min="1000" data-max="2000">1000 - 2000</div>
+                <div class="cyber-grid" style="margin-bottom: 0;">
+                    <div class="cyber-col">
+                        <label class="cyber-label">From</label> 
+                        <input 
+                            type="text" 
+                            id="rangeFromAmount" 
+                            class="cyber-input" 
+                            value="1500"
+                            min="1" 
+                            placeholder="1500"
+                            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                        >
+                    </div>
+                    <div class="cyber-col">
+                        <label class="cyber-label">To</label> 
+                        <input 
+                            type="text" 
+                            id="rangeToAmount" 
+                            class="cyber-input" 
+                            value="2000"
+                            min="1" 
+                            placeholder="2000"
+                            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                        >
+                    </div>
                 </div>
             </div>
     
@@ -366,16 +387,17 @@
     const stopBtn = document.getElementById("stopBtn");
     const modeToggle = document.getElementById("modeToggle");
     const orderTypeToggle = document.getElementById("orderTypeToggle");
-    const rangeToggle = document.getElementById("rangeToggle");
     const fixedSection = document.getElementById("fixedSection");
     const rangeSection = document.getElementById("rangeSection");
     const amountInput = document.getElementById("buyAmount");
+    const rangeFromInput = document.getElementById("rangeFromAmount");
+    const rangeToInput = document.getElementById("rangeToAmount");
 
     let isRunning = false;
     let selectedMode = "range"; // "fixed" or "range"
     let selectedOrderType = 1;
-    let selectedMinAmount = 700;
-    let selectedMaxAmount = 1000;
+    let selectedMinAmount = 1500;
+    let selectedMaxAmount = 2000;
     let isPremiumMember = false;
 
     function applyModeUI(mode) {
@@ -421,17 +443,15 @@
         }
 
         const savedRange = JSON.parse(localStorage.getItem("cyber_selected_range") || "null");
-        if (savedRange && savedRange.min && savedRange.max) {
-            selectedMinAmount = Number(savedRange.min);
-            selectedMaxAmount = Number(savedRange.max);
-            rangeToggle.querySelectorAll(".toggle-option").forEach(opt => {
-                if (Number(opt.dataset.min) === selectedMinAmount && Number(opt.dataset.max) === selectedMaxAmount) {
-                    opt.classList.add("active");
-                } else {
-                    opt.classList.remove("active");
-                }
-            });
+        if (savedRange && savedRange.min !== undefined && savedRange.max !== undefined) {
+            selectedMinAmount = Number(savedRange.min) || 1500;
+            selectedMaxAmount = Number(savedRange.max) || 2000;
+        } else {
+            selectedMinAmount = 1500;
+            selectedMaxAmount = 2000;
         }
+        if (rangeFromInput) rangeFromInput.value = String(selectedMinAmount);
+        if (rangeToInput) rangeToInput.value = String(selectedMaxAmount);
     } catch (e) {
         console.log("Error restoring settings:", e);
     }
@@ -457,20 +477,30 @@
         };
     });
 
-    // Toggle logic for Range Selection
-    rangeToggle.querySelectorAll(".toggle-option").forEach(opt => {
-        opt.onclick = () => {
-            rangeToggle.querySelector(".active")?.classList.remove("active");
-            opt.classList.add("active");
-            selectedMinAmount = Number(opt.dataset.min);
-            selectedMaxAmount = Number(opt.dataset.max);
+    // Input handlers for Range From / To
+    if (rangeFromInput) {
+        rangeFromInput.addEventListener("input", () => {
+            rangeFromInput.value = rangeFromInput.value.replace(/[^0-9]/g, "");
+            selectedMinAmount = Number(rangeFromInput.value) || 0;
             localStorage.setItem("cyber_selected_range", JSON.stringify({
                 min: selectedMinAmount,
                 max: selectedMaxAmount
             }));
-            console.log(`Selected Range: ₹${selectedMinAmount} - ₹${selectedMaxAmount}`);
-        };
-    });
+            console.log(`Range From updated: ₹${selectedMinAmount}`);
+        });
+    }
+
+    if (rangeToInput) {
+        rangeToInput.addEventListener("input", () => {
+            rangeToInput.value = rangeToInput.value.replace(/[^0-9]/g, "");
+            selectedMaxAmount = Number(rangeToInput.value) || 0;
+            localStorage.setItem("cyber_selected_range", JSON.stringify({
+                min: selectedMinAmount,
+                max: selectedMaxAmount
+            }));
+            console.log(`Range To updated: ₹${selectedMaxAmount}`);
+        });
+    }
 
     function formatStatusText(str) {
         if (!str || typeof str !== "string") return "";
@@ -724,6 +754,22 @@
 
         } else {
             // Range Search Mode
+            const fromVal = Number(rangeFromInput?.value || selectedMinAmount);
+            const toVal = Number(rangeToInput?.value || selectedMaxAmount);
+
+            if (!fromVal || !toVal) {
+                setStatus("Enter range values");
+                return;
+            }
+
+            if (fromVal > toVal) {
+                setStatus("From cannot exceed To");
+                return;
+            }
+
+            selectedMinAmount = fromVal;
+            selectedMaxAmount = toVal;
+
             isRunning = true;
             localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "range");
