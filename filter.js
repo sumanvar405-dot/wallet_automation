@@ -12,13 +12,15 @@
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #1f365d 0%, #0d172e 60%, #040814 100%);
-        border: 1.5px solid rgba(0, 247, 255, 0.5);
+        background: radial-gradient(circle at 35% 30%, #1f4277 0%, #0e2042 55%, #050b18 100%);
+        border: 1.8px solid #00f7ff;
         box-shadow: 
-            0 8px 24px rgba(0, 0, 0, 0.75),
-            0 0 16px rgba(0, 247, 255, 0.35),
-            inset 0 1.5px 2px rgba(255, 255, 255, 0.35),
-            inset 0 -2px 4px rgba(0, 0, 0, 0.6);
+            0 0 14px rgba(0, 247, 255, 0.85),
+            0 0 28px rgba(0, 247, 255, 0.5),
+            0 0 42px rgba(0, 247, 255, 0.25),
+            inset 0 0 10px rgba(0, 247, 255, 0.6),
+            inset 0 1.5px 3px rgba(255, 255, 255, 0.8),
+            0 8px 24px rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(10px);
         z-index: 999999;
         display: flex;
@@ -27,22 +29,52 @@
         cursor: grab;
         user-select: none;
         touch-action: none;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+        animation: cyberDotGlow 2.5s infinite ease-in-out;
+    }
+
+    @keyframes cyberDotGlow {
+        0%, 100% {
+            box-shadow: 
+                0 0 12px rgba(0, 247, 255, 0.8),
+                0 0 25px rgba(0, 247, 255, 0.45),
+                0 0 40px rgba(0, 247, 255, 0.2),
+                inset 0 0 10px rgba(0, 247, 255, 0.55),
+                inset 0 1.5px 2px rgba(255, 255, 255, 0.75),
+                0 8px 20px rgba(0, 0, 0, 0.75);
+            border-color: #00f7ff;
+        }
+        50% {
+            box-shadow: 
+                0 0 22px rgba(0, 247, 255, 1),
+                0 0 44px rgba(0, 247, 255, 0.8),
+                0 0 65px rgba(0, 247, 255, 0.5),
+                inset 0 0 14px rgba(0, 247, 255, 0.85),
+                inset 0 1.5px 3px #ffffff,
+                0 10px 28px rgba(0, 0, 0, 0.85);
+            border-color: #7df9ff;
+        }
     }
 
     #cyberFloatingDot:hover {
-        transform: scale(1.1);
-        border-color: #00f7ff;
+        transform: scale(1.12);
+        border-color: #ffffff;
         box-shadow: 
-            0 10px 28px rgba(0, 0, 0, 0.8),
-            0 0 22px rgba(0, 247, 255, 0.6),
-            inset 0 1.5px 3px rgba(255, 255, 255, 0.5),
-            inset 0 -2px 4px rgba(0, 0, 0, 0.7);
+            0 0 26px rgba(0, 247, 255, 1),
+            0 0 52px rgba(0, 247, 255, 0.9),
+            0 0 80px rgba(0, 247, 255, 0.65),
+            inset 0 0 16px rgba(0, 247, 255, 0.95),
+            inset 0 2px 4px #ffffff,
+            0 12px 32px rgba(0, 0, 0, 0.9);
     }
 
     #cyberFloatingDot.is-dragging {
         cursor: grabbing;
-        transform: scale(1.06);
+        transform: scale(1.08);
+        box-shadow: 
+            0 0 30px rgba(0, 247, 255, 1),
+            0 0 60px rgba(0, 247, 255, 0.9),
+            inset 0 0 16px rgba(0, 247, 255, 0.9);
     }
 
     .cyber-orb-shine {
@@ -59,13 +91,40 @@
 
     .cyber-floating-icon {
         display: block;
-        filter: drop-shadow(0 0 5px rgba(0, 247, 255, 0.85));
+        pointer-events: none;
+        filter: drop-shadow(0 0 6px #00f7ff) drop-shadow(0 0 12px rgba(0, 247, 255, 0.85));
         transition: all 0.25s ease;
+    }
+
+    #cyberFloatingDot.running {
+        border-color: #00ff95;
+        animation: cyberDotRunningGlow 1.4s infinite ease-in-out;
+    }
+
+    @keyframes cyberDotRunningGlow {
+        0%, 100% {
+            box-shadow: 
+                0 0 15px rgba(0, 255, 149, 0.85),
+                0 0 30px rgba(0, 255, 149, 0.55),
+                0 0 48px rgba(0, 255, 149, 0.3),
+                inset 0 0 10px rgba(0, 255, 149, 0.6),
+                inset 0 1.5px 2px rgba(255, 255, 255, 0.8),
+                0 8px 20px rgba(0, 0, 0, 0.8);
+        }
+        50% {
+            box-shadow: 
+                0 0 26px rgba(0, 255, 149, 1),
+                0 0 50px rgba(0, 255, 149, 0.85),
+                0 0 75px rgba(0, 255, 149, 0.55),
+                inset 0 0 16px rgba(0, 255, 149, 0.9),
+                inset 0 1.5px 3px #ffffff,
+                0 10px 28px rgba(0, 0, 0, 0.85);
+        }
     }
 
     #cyberFloatingDot.running .cyber-floating-icon {
         stroke: #00ff95;
-        filter: drop-shadow(0 0 7px rgba(0, 255, 149, 0.95));
+        filter: drop-shadow(0 0 8px #00ff95) drop-shadow(0 0 16px rgba(0, 255, 149, 0.9));
         animation: cyberIconPulse 1.2s infinite ease-in-out;
     }
 
@@ -73,24 +132,26 @@
         position: absolute;
         inset: -4px;
         border-radius: 50%;
-        border: 1.5px solid rgba(0, 247, 255, 0.4);
-        opacity: 0.6;
+        border: 1.5px solid rgba(0, 247, 255, 0.6);
+        box-shadow: 0 0 10px rgba(0, 247, 255, 0.45);
+        opacity: 0.75;
         pointer-events: none;
     }
 
     #cyberFloatingDot.running .cyber-floating-ring {
-        border-color: rgba(0, 255, 149, 0.75);
+        border-color: rgba(0, 255, 149, 0.85);
+        box-shadow: 0 0 14px rgba(0, 255, 149, 0.6);
         animation: cyberRingPulse 1.6s infinite ease-out;
     }
 
     @keyframes cyberIconPulse {
         0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.15); opacity: 0.8; }
+        50% { transform: scale(1.15); opacity: 0.85; }
     }
 
     @keyframes cyberRingPulse {
-        0% { transform: scale(0.95); opacity: 0.8; }
-        50% { transform: scale(1.2); opacity: 0.25; }
+        0% { transform: scale(0.95); opacity: 0.85; }
+        50% { transform: scale(1.2); opacity: 0.3; }
         100% { transform: scale(1.35); opacity: 0; }
     }
 
@@ -614,6 +675,9 @@
         }
 
         function onPointerDown(e) {
+            if (e) {
+                e.stopPropagation();
+            }
             isDragging = true;
             hasMoved = false;
             startX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
@@ -634,6 +698,9 @@
 
         function onPointerMove(e) {
             if (!isDragging) return;
+            if (e) {
+                e.stopPropagation();
+            }
             const clientX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
             const clientY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
             const dx = clientX - startX;
@@ -656,7 +723,24 @@
             }
         }
 
-        function onPointerUp() {
+        function onPointerUp(e) {
+            if (!isDragging) return;
+            if (e) {
+                e.stopPropagation();
+            }
+            isDragging = false;
+            floatingDot.classList.remove("is-dragging");
+
+            if (hasMoved) {
+                const rect = floatingDot.getBoundingClientRect();
+                localStorage.setItem("cyber_dot_x", String(rect.left));
+                localStorage.setItem("cyber_dot_y", String(rect.top));
+            }
+            // Do NOT hide floatingDot here; let the click event fire on floatingDot
+            // so floatingDot consumes the click and prevents elements behind from being clicked.
+        }
+
+        function onTouchEnd(e) {
             if (!isDragging) return;
             isDragging = false;
             floatingDot.classList.remove("is-dragging");
@@ -666,25 +750,42 @@
                 localStorage.setItem("cyber_dot_x", String(rect.left));
                 localStorage.setItem("cyber_dot_y", String(rect.top));
             } else {
-                // Click gesture: Open the panel
+                // Prevent synthetic mouse/click events from firing on elements behind
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
                 showPanel();
             }
         }
 
-        floatingDot.addEventListener("click", (e) => {
+        // Intercept all mouse, pointer, and touch events on floatingDot to protect elements behind it
+        floatingDot.addEventListener("pointerdown", (e) => e.stopPropagation(), true);
+        floatingDot.addEventListener("pointerup", (e) => e.stopPropagation(), true);
+        floatingDot.addEventListener("mousedown", (e) => {
             e.stopPropagation();
+            onPointerDown(e);
+        }, true);
+        floatingDot.addEventListener("mouseup", (e) => {
+            e.stopPropagation();
+        }, true);
+
+        // Click handler absorbs and terminates the click so behind elements NEVER receive it
+        floatingDot.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
             if (!hasMoved) {
                 showPanel();
             }
-        });
+        }, true);
 
-        floatingDot.addEventListener("mousedown", onPointerDown);
-        window.addEventListener("mousemove", onPointerMove);
-        window.addEventListener("mouseup", onPointerUp);
+        window.addEventListener("mousemove", onPointerMove, true);
+        window.addEventListener("mouseup", onPointerUp, true);
 
-        floatingDot.addEventListener("touchstart", onPointerDown, { passive: true });
+        floatingDot.addEventListener("touchstart", onPointerDown, { passive: false });
         window.addEventListener("touchmove", onPointerMove, { passive: true });
-        window.addEventListener("touchend", onPointerUp);
+        window.addEventListener("touchend", onTouchEnd, { passive: false });
     })();
 
     const statusEl = document.getElementById("cyberStatus");
