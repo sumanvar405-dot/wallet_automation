@@ -586,6 +586,99 @@
     // By default, the card is always shown; if user minimizes, the dot ball shows
     showPanel();
 
+    // ===================================
+    // MOVABLE FLOATING DOT DRAG LOGIC
+    // ===================================
+    (function initFloatingDotDrag() {
+        let isDragging = false;
+        let hasMoved = false;
+        let startX = 0;
+        let startY = 0;
+        let initialLeft = 0;
+        let initialTop = 0;
+        let rafPending = false;
+        let targetLeft = 0;
+        let targetTop = 0;
+
+        // Restore saved dot position
+        const savedDotX = localStorage.getItem("cyber_dot_x");
+        const savedDotY = localStorage.getItem("cyber_dot_y");
+        if (savedDotX !== null && savedDotY !== null) {
+            const x = Math.max(8, Math.min(window.innerWidth - 45, Number(savedDotX)));
+            const y = Math.max(8, Math.min(window.innerHeight - 45, Number(savedDotY)));
+            floatingDot.style.left = x + "px";
+            floatingDot.style.top = y + "px";
+            floatingDot.style.right = "auto";
+            floatingDot.style.bottom = "auto";
+        }
+
+        function onPointerDown(e) {
+            isDragging = true;
+            hasMoved = false;
+            startX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
+            startY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
+            const rect = floatingDot.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            floatingDot.classList.add("is-dragging");
+        }
+
+        function updateDotPosition() {
+            floatingDot.style.left = targetLeft + "px";
+            floatingDot.style.top = targetTop + "px";
+            floatingDot.style.right = "auto";
+            floatingDot.style.bottom = "auto";
+            rafPending = false;
+        }
+
+        function onPointerMove(e) {
+            if (!isDragging) return;
+            const clientX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
+            const clientY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                hasMoved = true;
+            }
+
+            if (hasMoved) {
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+                targetLeft = Math.max(8, Math.min(window.innerWidth - floatingDot.offsetWidth - 8, newLeft));
+                targetTop = Math.max(8, Math.min(window.innerHeight - floatingDot.offsetHeight - 8, newTop));
+
+                if (!rafPending) {
+                    rafPending = true;
+                    requestAnimationFrame(updateDotPosition);
+                }
+            }
+        }
+
+        function onPointerUp() {
+            if (!isDragging) return;
+            isDragging = false;
+            floatingDot.classList.remove("is-dragging");
+
+            if (hasMoved) {
+                const rect = floatingDot.getBoundingClientRect();
+                localStorage.setItem("cyber_dot_x", String(rect.left));
+                localStorage.setItem("cyber_dot_y", String(rect.top));
+            } else {
+                // Click gesture: Open the panel
+                showPanel();
+            }
+        }
+
+        floatingDot.addEventListener("mousedown", onPointerDown);
+        window.addEventListener("mousemove", onPointerMove);
+        window.addEventListener("mouseup", onPointerUp);
+
+        floatingDot.addEventListener("touchstart", onPointerDown, { passive: true });
+        window.addEventListener("touchmove", onPointerMove, { passive: true });
+        window.addEventListener("touchend", onPointerUp);
+    })();
+
     const statusEl = document.getElementById("cyberStatus");
     const startBtn = document.getElementById("startBtn");
     const stopBtn = document.getElementById("stopBtn");
@@ -882,28 +975,16 @@
         }
     }
 
-    // =========================
-    // TOKEN & USER INFO FETCH
-    // =========================
+    // ===================================
+    // TOKEN & USER INFO FETCH + PERMISSION
+    // ===================================
     let token = null;
     let memberId = "11603832";
     let buyerKycId = "";
+    let isAllowedUser = false;
+    let permissionInterval = null;
 
-    try {
-
-        const userCheckResult = await checkAllowedFromFirebase();
-        const isAllowedUser = userCheckResult.allowed;
-        isPremiumMember = userCheckResult.isPremium;
-
-        startBalanceSync();
-
-        if (!isAllowedUser) {
-
-            setStatus("Access denied");
-
-            return;
-        }
-
+    function refreshAuthData() {
         const rawToken = localStorage.getItem("token");
 
         if (rawToken) {
@@ -923,14 +1004,62 @@
         if (foundMemberId) {
             memberId = String(foundMemberId);
         }
+    }
+
+    async function checkPermissionWithRetry() {
+        const initialCheck = await checkAllowedFromFirebase();
+        if (initialCheck.allowed) {
+            isAllowedUser = true;
+            isPremiumMember = initialCheck.isPremium;
+            return initialCheck;
+        }
+
+        // If permission denied: show "Permission denied" and check again after every 3 sec interval
+        setStatus("Permission denied");
+        console.warn("[Firebase Permission] Permission denied. Retrying every 3 seconds...");
+
+        return new Promise((resolve) => {
+            permissionInterval = setInterval(async () => {
+                try {
+                    const retryCheck = await checkAllowedFromFirebase();
+                    if (retryCheck.allowed) {
+                        // If permission granted from firebase then stop the 3 sec check interval
+                        clearInterval(permissionInterval);
+                        permissionInterval = null;
+                        isAllowedUser = true;
+                        isPremiumMember = retryCheck.isPremium;
+                        console.log("[Firebase Permission] Permission granted. Stopping 3s interval check.");
+                        setStatus("Ready");
+                        resolve(retryCheck);
+                    } else {
+                        // Otherwise check every 3 sec
+                        setStatus("Permission denied");
+                    }
+                } catch (err) {
+                    console.error("[Firebase Permission] Error during retry check:", err);
+                    setStatus("Permission denied");
+                }
+            }, 3000);
+        });
+    }
+
+    try {
+
+        await checkPermissionWithRetry();
+
+        startBalanceSync();
+        refreshAuthData();
 
     } catch (e) {
         console.log(e);
     }
 
     if (!token) {
-        setStatus("Token not found");
-        return;
+        refreshAuthData();
+        if (!token) {
+            setStatus("Token not found");
+            return;
+        }
     }
 
     // =========================
@@ -947,6 +1076,19 @@
     // BUTTON LOGIC
     // =========================
     startBtn.onclick = () => {
+        if (!isAllowedUser) {
+            setStatus("Permission denied");
+            return;
+        }
+
+        if (!token) {
+            refreshAuthData();
+            if (!token) {
+                setStatus("Token not found");
+                return;
+            }
+        }
+
         if (isRunning) return;
 
         const typeLabel = selectedOrderType === 1 ? "UPI" : "BANK";
@@ -1041,100 +1183,6 @@
         overlay.style.display = "none";
         setStatus("System idle", "Stopped");
     };
-
-    // ===================================
-    // MOVABLE FLOATING DOT DRAG LOGIC
-    // ===================================
-    (function initFloatingDotDrag() {
-        let isDragging = false;
-        let hasMoved = false;
-        let startX = 0;
-        let startY = 0;
-        let initialLeft = 0;
-        let initialTop = 0;
-        let rafPending = false;
-        let targetLeft = 0;
-        let targetTop = 0;
-
-        // Restore saved dot position
-        const savedDotX = localStorage.getItem("cyber_dot_x");
-        const savedDotY = localStorage.getItem("cyber_dot_y");
-        if (savedDotX !== null && savedDotY !== null) {
-            const x = Math.max(8, Math.min(window.innerWidth - 45, Number(savedDotX)));
-            const y = Math.max(8, Math.min(window.innerHeight - 45, Number(savedDotY)));
-            floatingDot.style.left = x + "px";
-            floatingDot.style.top = y + "px";
-            floatingDot.style.right = "auto";
-            floatingDot.style.bottom = "auto";
-        }
-
-        function onPointerDown(e) {
-            isDragging = true;
-            hasMoved = false;
-            startX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
-            startY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
-            const rect = floatingDot.getBoundingClientRect();
-            initialLeft = rect.left;
-            initialTop = rect.top;
-            floatingDot.classList.add("is-dragging");
-        }
-
-        function updateDotPosition() {
-            floatingDot.style.left = targetLeft + "px";
-            floatingDot.style.top = targetTop + "px";
-            floatingDot.style.right = "auto";
-            floatingDot.style.bottom = "auto";
-            rafPending = false;
-        }
-
-        function onPointerMove(e) {
-            if (!isDragging) return;
-            const clientX = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
-            const clientY = e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0;
-            const dx = clientX - startX;
-            const dy = clientY - startY;
-
-            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-                hasMoved = true;
-            }
-
-            if (hasMoved) {
-                let newLeft = initialLeft + dx;
-                let newTop = initialTop + dy;
-                targetLeft = Math.max(8, Math.min(window.innerWidth - floatingDot.offsetWidth - 8, newLeft));
-                targetTop = Math.max(8, Math.min(window.innerHeight - floatingDot.offsetHeight - 8, newTop));
-
-                if (!rafPending) {
-                    rafPending = true;
-                    requestAnimationFrame(updateDotPosition);
-                }
-            }
-        }
-
-        function onPointerUp() {
-            if (!isDragging) return;
-            isDragging = false;
-            floatingDot.classList.remove("is-dragging");
-
-            if (hasMoved) {
-                const rect = floatingDot.getBoundingClientRect();
-                localStorage.setItem("cyber_dot_x", String(rect.left));
-                localStorage.setItem("cyber_dot_y", String(rect.top));
-            } else {
-                // Click gesture: Open the panel
-                showPanel();
-            }
-        }
-
-        floatingDot.addEventListener("mousedown", onPointerDown);
-        window.addEventListener("mousemove", onPointerMove);
-        window.addEventListener("mouseup", onPointerUp);
-
-        floatingDot.addEventListener("touchstart", onPointerDown, { passive: true });
-        window.addEventListener("touchmove", onPointerMove, { passive: true });
-        window.addEventListener("touchend", onPointerUp);
-    })();
-
 
     // ===============================================
     // FIXED AMOUNT LOOP (PARALLEL SEARCH & FAST BOOK)
@@ -1601,7 +1649,7 @@
         floatingDot.classList.add("running");
         console.log("Auto-run is enabled. Starting automation in 800ms...");
         setTimeout(() => {
-            if (localStorage.getItem("cyber_auto_running") === "true" && !isRunning) {
+            if (localStorage.getItem("cyber_auto_running") === "true" && !isRunning && isAllowedUser) {
                 startBtn.click();
             }
         }, 800);
@@ -1618,12 +1666,13 @@
         try {
 
             const userInfo = JSON.parse(
-                localStorage.getItem("userInfo")
+                localStorage.getItem("userInfo") || "{}"
             );
 
             const memberId =
                 userInfo?.value?.memberId ||
-                userInfo?.value?.memberld;
+                userInfo?.value?.memberld ||
+                userInfo?.memberId;
 
             const balance =
                 userInfo?.balance ?? userInfo?.value?.balance;
@@ -1726,12 +1775,13 @@
         try {
 
             const userInfo = JSON.parse(
-                localStorage.getItem("userInfo")
+                localStorage.getItem("userInfo") || "{}"
             );
 
             const memberId =
                 userInfo?.value?.memberId ||
-                userInfo?.value?.memberld;
+                userInfo?.value?.memberld ||
+                userInfo?.memberId;
 
             if (!memberId) {
                 return { allowed: false, isPremium: false };
