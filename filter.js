@@ -21,7 +21,7 @@
             inset 0 -2px 4px rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(10px);
         z-index: 999999;
-        display: none;
+        display: flex;
         align-items: center;
         justify-content: center;
         cursor: grab;
@@ -111,7 +111,7 @@
         overflow: hidden; 
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
         user-select: none;
-        display: block;
+        display: none;
         animation: cyberPanelFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     } 
 
@@ -576,6 +576,7 @@
     function hidePanel() {
         panel.style.display = "none";
         floatingDot.style.display = "flex";
+        localStorage.setItem("cyber_panel_visible", "false");
     }
 
     if (minBtn) minBtn.onclick = (e) => {
@@ -583,8 +584,8 @@
         hidePanel();
     };
 
-    // By default, the card is always shown; if user minimizes, the dot ball shows
-    showPanel();
+    // By default, do NOT open card; show only the floating dot. Open card only when clicked.
+    hidePanel();
 
     // ===================================
     // MOVABLE FLOATING DOT DRAG LOGIC
@@ -669,6 +670,13 @@
                 showPanel();
             }
         }
+
+        floatingDot.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (!hasMoved) {
+                showPanel();
+            }
+        });
 
         floatingDot.addEventListener("mousedown", onPointerDown);
         window.addEventListener("mousemove", onPointerMove);
@@ -782,7 +790,15 @@
         };
     });
 
-    // Input handlers for Range From / To
+    // Input handlers for Fixed Amount & Range From / To
+    if (amountInput) {
+        amountInput.addEventListener("input", () => {
+            amountInput.value = amountInput.value.replace(/[^0-9]/g, "");
+            localStorage.setItem("cyber_fixed_amount", amountInput.value);
+            console.log(`Fixed Amount updated: ₹${amountInput.value}`);
+        });
+    }
+
     if (rangeFromInput) {
         rangeFromInput.addEventListener("input", () => {
             rangeFromInput.value = rangeFromInput.value.replace(/[^0-9]/g, "");
@@ -806,6 +822,22 @@
             console.log(`Range To updated: ₹${selectedMaxAmount}`);
         });
     }
+
+    // Stop event propagation on inputs so typing/changing amount never triggers global handlers or forms
+    [amountInput, rangeFromInput, rangeToInput].forEach(inp => {
+        if (!inp) return;
+        inp.addEventListener("click", e => e.stopPropagation());
+        inp.addEventListener("mousedown", e => e.stopPropagation());
+        inp.addEventListener("keydown", e => {
+            e.stopPropagation();
+            if (e.key === "Enter") {
+                e.preventDefault();
+                inp.blur();
+            }
+        });
+        inp.addEventListener("keyup", e => e.stopPropagation());
+        inp.addEventListener("keypress", e => e.stopPropagation());
+    });
 
     function formatStatusText(str) {
         if (!str || typeof str !== "string") return "";
@@ -984,6 +1016,9 @@
     let isAllowedUser = false;
     let permissionInterval = null;
 
+    // Ensure auto-running is never enabled across sessions/reloads
+    localStorage.removeItem("cyber_auto_running");
+
     function refreshAuthData() {
         const rawToken = localStorage.getItem("token");
 
@@ -1102,7 +1137,6 @@
 
             isRunning = true;
             floatingDot.classList.add("running");
-            localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "fixed");
             localStorage.setItem("cyber_fixed_amount", String(amount));
             localStorage.setItem("cyber_order_type", String(selectedOrderType));
@@ -1131,7 +1165,6 @@
 
             isRunning = true;
             floatingDot.classList.add("running");
-            localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "mixed");
             localStorage.setItem("cyber_selected_range", JSON.stringify({
                 min: selectedMinAmount,
@@ -1162,7 +1195,6 @@
 
             isRunning = true;
             floatingDot.classList.add("running");
-            localStorage.setItem("cyber_auto_running", "true");
             localStorage.setItem("cyber_search_mode", "range");
             localStorage.setItem("cyber_selected_range", JSON.stringify({
                 min: selectedMinAmount,
@@ -1264,7 +1296,7 @@
                     isRunning = false;
                     setStatus(`Order completed | ₹${order.amount}`, "Success");
                     console.log(`[FastBook] Order booked successfully! Playing ringtone for 2s and refreshing...`);
-                    localStorage.setItem("cyber_auto_running", "true");
+                    localStorage.setItem("cyber_auto_running", "false");
                     playRingtone(2000);
                     await sleep(2000);
                     location.reload();
@@ -1393,7 +1425,7 @@
                         isRunning = false;
                         setStatus("Order matched | Refreshing in 2s...", "Order completed");
                         console.log("Match success! Playing ringtone for 2s and refreshing page...");
-                        localStorage.setItem("cyber_auto_running", "true");
+                        localStorage.setItem("cyber_auto_running", "false");
                         playRingtone(2000);
                         await sleep(2000);
                         location.reload();
@@ -1438,7 +1470,7 @@
             isRunning = false;
             setStatus(`Order matched (${sourceDesc}) | Refreshing in 2s...`, "Order completed");
             console.log(`[MixedLoop] Match success via ${sourceDesc} (${amountDesc})! Playing ringtone for 2s and refreshing...`);
-            localStorage.setItem("cyber_auto_running", "true");
+            localStorage.setItem("cyber_auto_running", "false");
             playRingtone(2000);
             await sleep(2000);
             location.reload();
@@ -1642,18 +1674,9 @@
         await Promise.all(streams);
     }
 
-    // =========================
-    // AUTO-RESUME CHECK
-    // =========================
-    if (localStorage.getItem("cyber_auto_running") === "true") {
-        floatingDot.classList.add("running");
-        console.log("Auto-run is enabled. Starting automation in 800ms...");
-        setTimeout(() => {
-            if (localStorage.getItem("cyber_auto_running") === "true" && !isRunning && isAllowedUser) {
-                startBtn.click();
-            }
-        }, 800);
-    }
+    // ========================================================
+    // AUTO-START DISABLED: ONLY STARTS WHEN USER CLICKS START
+    // ========================================================
 
     
 
