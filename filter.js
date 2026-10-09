@@ -1801,7 +1801,7 @@
                             platformOrder: order.platformOrder,
                             payType: order.payType,
                             orderType: order.orderType,
-                            buyBankCode: "supermoney",
+                            buyBankCode: "moneyView",
                             buyerKycId: ""
                         })
                     }
@@ -1916,7 +1916,7 @@
                         maxAmount: maxAmount,
                         minAmount: minAmount,
                         orderType: type,
-                        buyBankCode: "supermoney",
+                        buyBankCode: "moneyView",
                         buyerKycId: ""
                     };
 
@@ -2014,7 +2014,7 @@
                         maxAmount: maxAmount,
                         minAmount: minAmount,
                         orderType: orderType,
-                        buyBankCode: "supermoney",
+                        buyBankCode: "moneyView",
                         buyerKycId: ""
                     };
 
