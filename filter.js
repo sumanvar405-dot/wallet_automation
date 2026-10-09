@@ -1009,6 +1009,424 @@
     }
 
     
+/* =========================================================
+   CONTINUOUS QR → UPI ID DETECTOR
+   Insert BEFORE: // FIREBASE
+   Scans immediately and continues every second.
+   ========================================================= */
+(() => {
+    if (window.__upiQrDetectorStarted) {
+        console.log("[UPI QR] Detector already running.");
+        return;
+    }
+
+    window.__upiQrDetectorStarted = true;
+
+    const SCAN_INTERVAL_MS = 1000;
+    let scanBusy = false;
+    let lastCopiedUpi = "";
+    let jsQrLoadPromise = null;
+
+    // -------------------------
+    // Toast notification
+    // -------------------------
+    function showUpiToast(message, success = true) {
+        let toast = document.getElementById("upiQrToast");
+
+        if (!toast) {
+            const style = document.createElement("style");
+            style.id = "upiQrToastStyles";
+            style.textContent = `
+                #upiQrToast {
+                    position: fixed;
+                    top: 22px;
+                    right: 20px;
+                    z-index: 2147483647;
+                    max-width: calc(100vw - 40px);
+                    padding: 14px 18px;
+                    border-radius: 12px;
+                    color: #fff;
+                    font: 600 14px/1.5 system-ui, sans-serif;
+                    box-shadow: 0 10px 35px rgba(0,0,0,.3);
+                    border: 1px solid rgba(255,255,255,.18);
+                    background: #123c2b;
+                    opacity: 0;
+                    transform: translateY(-12px);
+                    transition: opacity .2s ease, transform .2s ease;
+                    pointer-events: none;
+                    overflow-wrap: anywhere;
+                }
+                #upiQrToast.upi-error {
+                    background: #64252b;
+                }
+                #upiQrToast.upi-visible {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            `;
+            (document.head || document.documentElement)
+                .appendChild(style);
+
+            toast = document.createElement("div");
+            toast.id = "upiQrToast";
+            (document.body || document.documentElement)
+                .appendChild(toast);
+        }
+
+        toast.classList.toggle("upi-error", !success);
+        toast.textContent = message;
+        toast.classList.add("upi-visible");
+
+        clearTimeout(toast.__hideTimer);
+        toast.__hideTimer = setTimeout(() => {
+            toast.classList.remove("upi-visible");
+        }, 3500);
+    }
+
+    // -------------------------
+    // Load QR decoder once
+    // -------------------------
+    function loadJsQR() {
+        if (typeof window.jsQR === "function") {
+            return Promise.resolve();
+        }
+
+        if (jsQrLoadPromise) {
+            return jsQrLoadPromise;
+        }
+
+        jsQrLoadPromise = new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src =
+                "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
+            script.async = true;
+
+            script.onload = () => {
+                if (typeof window.jsQR === "function") {
+                    resolve();
+                } else {
+                    reject(new Error("QR decoder did not load."));
+                }
+            };
+
+            script.onerror = () => {
+                jsQrLoadPromise = null;
+                reject(new Error("Could not load QR decoder."));
+            };
+
+            (document.head || document.documentElement)
+                .appendChild(script);
+        });
+
+        return jsQrLoadPromise;
+    }
+
+    // -------------------------
+    // Extract UPI ID from QR text
+    // -------------------------
+    function extractUpiId(qrText) {
+        if (typeof qrText !== "string") return "";
+
+        const text = qrText.trim();
+
+        // Expected format:
+        // upi://pay?pa=name@bank&am=100&cu=INR
+        try {
+            const url = new URL(text);
+
+            if (
+                url.protocol.toLowerCase() === "upi:" &&
+                url.hostname.toLowerCase() === "pay"
+            ) {
+                const pa = url.searchParams.get("pa");
+                if (pa) return validateUpiId(pa);
+            }
+        } catch (_) {
+            // Continue with fallback parsing.
+        }
+
+        // Fallback for encoded or unusual UPI payloads.
+        const match = text.match(
+            /(?:[?&]pa=|(?:^|\s)pa=)([^&\s]+)/i
+        );
+
+        if (match) {
+            try {
+                return validateUpiId(
+                    decodeURIComponent(match[1].replace(/\+/g, "%20"))
+                );
+            } catch (_) {
+                return validateUpiId(match[1]);
+            }
+        }
+
+        // Also accept a QR whose content is just a UPI ID.
+        return validateUpiId(text);
+    }
+
+    function validateUpiId(value) {
+        if (!value) return "";
+
+        const upiId = String(value).trim();
+
+        // Basic UPI ID format: name@bank
+        return /^[a-zA-Z0-9._-]{2,256}@[a-zA-Z0-9.-]{2,64}$/
+            .test(upiId)
+            ? upiId
+            : "";
+    }
+
+    // -------------------------
+    // Copy UPI ID to clipboard
+    // -------------------------
+    async function copyUpiToClipboard(upiId) {
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(upiId);
+                return true;
+            }
+        } catch (error) {
+            console.debug(
+                "[UPI QR] Clipboard API unavailable:",
+                error
+            );
+        }
+
+        // Fallback; browser security may still block this.
+        try {
+            const textarea = document.createElement("textarea");
+            textarea.value = upiId;
+            textarea.readOnly = true;
+            textarea.style.cssText =
+                "position:fixed;left:-9999px;top:0;opacity:0;";
+
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+
+            const copied = document.execCommand("copy");
+            textarea.remove();
+
+            return copied;
+        } catch (error) {
+            console.warn("[UPI QR] Copy failed:", error);
+            return false;
+        }
+    }
+
+    // -------------------------
+    // Check element visibility
+    // -------------------------
+    function isVisible(element) {
+        if (!element.isConnected) return false;
+
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+
+        return (
+            rect.width >= 40 &&
+            rect.height >= 40 &&
+            style.display !== "none" &&
+            style.visibility !== "hidden" &&
+            Number(style.opacity) !== 0
+        );
+    }
+
+    // -------------------------
+    // Decode an IMG or CANVAS
+    // -------------------------
+    function decodeElement(element) {
+        return new Promise(resolve => {
+            try {
+                if (!isVisible(element)) {
+                    resolve("");
+                    return;
+                }
+
+                let width;
+                let height;
+
+                if (element instanceof HTMLImageElement) {
+                    if (!element.complete ||
+                        !element.naturalWidth ||
+                        !element.naturalHeight) {
+                        resolve("");
+                        return;
+                    }
+
+                    width = element.naturalWidth;
+                    height = element.naturalHeight;
+                } else if (element instanceof HTMLCanvasElement) {
+                    width = element.width;
+                    height = element.height;
+                } else {
+                    resolve("");
+                    return;
+                }
+
+                if (!width || !height) {
+                    resolve("");
+                    return;
+                }
+
+                // Avoid excessive canvas allocations.
+                const maxDimension = 1200;
+                const scale = Math.min(
+                    1,
+                    maxDimension / Math.max(width, height)
+                );
+
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(width * scale));
+                canvas.height = Math.max(1, Math.round(height * scale));
+
+                const context = canvas.getContext("2d", {
+                    willReadFrequently: true
+                });
+
+                if (!context) {
+                    resolve("");
+                    return;
+                }
+
+                context.drawImage(
+                    element,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+
+                const imageData = context.getImageData(
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+
+                const result = window.jsQR(
+                    imageData.data,
+                    imageData.width,
+                    imageData.height,
+                    {
+                        inversionAttempts: "attemptBoth"
+                    }
+                );
+
+                resolve(result?.data || "");
+            } catch (error) {
+                // Cross-origin images or tainted canvases may be unreadable.
+                resolve("");
+            }
+        });
+    }
+
+    // -------------------------
+    // Process decoded QR payload
+    // -------------------------
+    async function handleQrText(qrText) {
+        const upiId = extractUpiId(qrText);
+
+        if (!upiId || upiId === lastCopiedUpi) {
+            return false;
+        }
+
+        const copied = await copyUpiToClipboard(upiId);
+
+        if (!copied) {
+            showUpiToast(
+                "QR detected, but clipboard access was blocked. Allow clipboard access and try again.",
+                false
+            );
+            console.warn("[UPI QR] UPI ID:", upiId);
+            return false;
+        }
+
+        lastCopiedUpi = upiId;
+        console.log("[UPI QR] UPI ID copied:", upiId);
+
+        showUpiToast("✓ UPI ID copied: " + upiId, true);
+        return true;
+    }
+
+    // -------------------------
+    // Scan all available images
+    // and canvases
+    // -------------------------
+    async function scanForUpiQr() {
+        if (scanBusy || !document.documentElement) return;
+
+        scanBusy = true;
+
+        try {
+            await loadJsQR();
+
+            const elements = document.querySelectorAll(
+                "img, canvas"
+            );
+
+            for (const element of elements) {
+                if (!isVisible(element)) continue;
+
+                const qrText = await decodeElement(element);
+                if (!qrText) continue;
+
+                const copied = await handleQrText(qrText);
+
+                if (copied) {
+                    break;
+                }
+            }
+        } catch (error) {
+            console.warn("[UPI QR] Scan issue:", error);
+        } finally {
+            scanBusy = false;
+        }
+    }
+
+    // -------------------------
+    // Start continuous detection
+    // -------------------------
+    function startContinuousScanner() {
+        // Detect a QR that already exists.
+        scanForUpiQr();
+
+        // Keep checking indefinitely while this page is alive.
+        window.__upiQrScanInterval = setInterval(
+            scanForUpiQr,
+            SCAN_INTERVAL_MS
+        );
+
+        // React to new images, changed image sources,
+        // new canvases, and page updates.
+        if (document.documentElement) {
+            window.__upiQrObserver = new MutationObserver(() => {
+                scanForUpiQr();
+            });
+
+            window.__upiQrObserver.observe(
+                document.documentElement,
+                {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: [
+                        "src",
+                        "srcset",
+                        "style",
+                        "class"
+                    ]
+                }
+            );
+        }
+
+        console.log(
+            "[UPI QR] Continuous scanner started; checking every second."
+        );
+    }
+
+    startContinuousScanner();
+})();
     // =========================
     // FIREBASE
     // =========================
@@ -1943,326 +2361,4 @@
 
         }
     }
-    
-    // ==========================================
-    // AUTO UPI QR DETECTOR + CLIPBOARD TOAST
-    // Add before the final })();
-    // ==========================================
-    if (!window.__upiQrDetectorStarted) {
-        window.__upiQrDetectorStarted = true;
-
-        const qrStyle = document.createElement("style");
-        qrStyle.textContent = `
-            #upiCopyToast {
-                position: fixed;
-                right: 20px;
-                bottom: 75px;
-                z-index: 2147483647;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                max-width: calc(100vw - 40px);
-                padding: 14px 18px;
-                border: 1px solid rgba(0,255,149,.45);
-                border-radius: 14px;
-                color: #fff;
-                background: linear-gradient(135deg,
-                    rgba(12,28,35,.97),
-                    rgba(5,16,25,.98));
-                box-shadow: 0 8px 35px rgba(0,0,0,.4),
-                            0 0 18px rgba(0,255,149,.16);
-                font: 13px -apple-system,BlinkMacSystemFont,
-                      "Segoe UI",sans-serif;
-                opacity: 0;
-                transform: translateY(12px);
-                transition: opacity .25s ease,
-                            transform .25s ease;
-                pointer-events: none;
-            }
-            #upiCopyToast.visible {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            #upiCopyToast .upi-check {
-                width: 34px;
-                height: 34px;
-                flex-shrink: 0;
-                display: grid;
-                place-items: center;
-                border-radius: 10px;
-                background: rgba(0,255,149,.12);
-                color: #00ff95;
-                font-size: 20px;
-            }
-            #upiCopyToast .upi-value {
-                display: block;
-                margin-top: 4px;
-                color: #00ff95;
-                font-weight: 700;
-                overflow-wrap: anywhere;
-            }
-        `;
-        document.head.appendChild(qrStyle);
-
-        let toastTimer;
-
-        function showUpiToast(upiId, copied) {
-            let toast = document.getElementById("upiCopyToast");
-
-            if (!toast) {
-                toast = document.createElement("div");
-                toast.id = "upiCopyToast";
-                document.body.appendChild(toast);
-            }
-
-            toast.innerHTML = `
-                <div class="upi-check">${copied ? "✓" : "↗"}</div>
-                <div>
-                    <strong>${copied ? "UPI ID Copied!" : "UPI ID Detected"}</strong>
-                    <span class="upi-value"></span>
-                    <span style="display:block;margin-top:4px;color:#a8bac5;font-size:11px">
-                        ${copied ? "Ready to paste" : "Tap here to copy"}
-                    </span>
-                </div>
-            `;
-
-            // Use textContent to avoid interpreting QR data as HTML.
-            toast.querySelector(".upi-value").textContent = upiId;
-            toast.style.pointerEvents = copied ? "none" : "auto";
-
-            toast.onclick = async () => {
-                try {
-                    await copyUpiToClipboard(upiId);
-                    showUpiToast(upiId, true);
-                } catch (e) {
-                    console.warn("Clipboard copy failed:", e);
-                }
-            };
-
-            clearTimeout(toastTimer);
-            requestAnimationFrame(() => toast.classList.add("visible"));
-
-            toastTimer = setTimeout(() => {
-                toast.classList.remove("visible");
-            }, 3500);
-        }
-
-        async function copyUpiToClipboard(upiId) {
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(upiId);
-                return;
-            }
-
-            // Fallback for browsers where the Clipboard API is unavailable.
-            const input = document.createElement("textarea");
-            input.value = upiId;
-            input.readOnly = true;
-            input.style.cssText =
-                "position:fixed;left:-9999px;top:0;opacity:0";
-            document.body.appendChild(input);
-            input.select();
-
-            const success = document.execCommand("copy");
-            input.remove();
-
-            if (!success) {
-                throw new Error("Clipboard permission required");
-            }
-        }
-
-        function extractUpiId(qrText) {
-            if (typeof qrText !== "string") return null;
-
-            try {
-                const value = qrText.trim();
-
-                // Accept UPI payment QR payloads only.
-                if (!/^upi:\/\/pay(?:\?|$)/i.test(value)) {
-                    return null;
-                }
-
-                const query = value.slice(value.indexOf("?") + 1);
-                const params = new URLSearchParams(query);
-                const upiId = (params.get("pa") || "").trim();
-
-                // Basic UPI ID validation.
-                if (
-                    upiId.length > 100 ||
-                    !/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/.test(upiId)
-                ) {
-                    return null;
-                }
-
-                return upiId;
-            } catch {
-                return null;
-            }
-        }
-
-        let lastUpiId = "";
-        let lastCopyAttempt = 0;
-        let decoderReady = false;
-        let scanning = false;
-
-        async function loadQrDecoder() {
-            if (window.jsQR) {
-                decoderReady = true;
-                return;
-            }
-
-            await new Promise((resolve, reject) => {
-                const script = document.createElement("script");
-                script.src =
-                    "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-
-            decoderReady = !!window.jsQR;
-            if (!decoderReady) {
-                throw new Error("QR decoder failed to initialize");
-            }
-        }
-
-        function decodeElement(element) {
-            try {
-                if (
-                    !element.isConnected ||
-                    element.closest("#cyberPanel, #cyberOverlay, #upiCopyToast")
-                ) {
-                    return null;
-                }
-
-                const rect = element.getBoundingClientRect();
-
-                if (
-                    rect.width < 40 ||
-                    rect.height < 40 ||
-                    rect.bottom < 0 ||
-                    rect.right < 0 ||
-                    rect.top > innerHeight ||
-                    rect.left > innerWidth
-                ) {
-                    return null;
-                }
-
-                let source;
-                let width;
-                let height;
-
-                if (element instanceof HTMLCanvasElement) {
-                    source = element;
-                    width = element.width;
-                    height = element.height;
-                } else if (
-                    element instanceof HTMLImageElement &&
-                    element.complete &&
-                    element.naturalWidth > 0
-                ) {
-                    source = element;
-                    width = element.naturalWidth;
-                    height = element.naturalHeight;
-                } else {
-                    return null;
-                }
-
-                if (!width || !height || width * height > 12000000) {
-                    return null;
-                }
-
-                const canvas = document.createElement("canvas");
-                canvas.width = width;
-                canvas.height = height;
-
-                const context = canvas.getContext("2d", {
-                    willReadFrequently: true
-                });
-
-                context.drawImage(source, 0, 0, width, height);
-
-                const imageData = context.getImageData(
-                    0, 0, width, height
-                );
-
-                const result = window.jsQR(
-                    imageData.data,
-                    imageData.width,
-                    imageData.height,
-                    { inversionAttempts: "attemptBoth" }
-                );
-
-                return result?.data || null;
-            } catch {
-                // Cross-origin images or inaccessible canvases may fail.
-                return null;
-            }
-        }
-
-        async function handleQrText(qrText) {
-            const upiId = extractUpiId(qrText);
-
-            if (!upiId || upiId === lastUpiId) return;
-
-            // Prevent repeated clipboard attempts while scanning.
-            const now = Date.now();
-            if (now - lastCopyAttempt < 1500) return;
-            lastCopyAttempt = now;
-
-            try {
-                await copyUpiToClipboard(upiId);
-                lastUpiId = upiId;
-                showUpiToast(upiId, true);
-                console.log("[UPI QR] Copied UPI ID:", upiId);
-            } catch (error) {
-                console.warn("[UPI QR] Copy needs browser permission:", error);
-                showUpiToast(upiId, false);
-            }
-        }
-
-        async function scanForUpiQr() {
-            if (scanning || !decoderReady || !document.body) return;
-
-            scanning = true;
-
-            try {
-                const elements = document.querySelectorAll("canvas, img");
-
-                for (const element of elements) {
-                    const qrText = decodeElement(element);
-
-                    if (qrText) {
-                        await handleQrText(qrText);
-                    }
-                }
-            } finally {
-                scanning = false;
-            }
-        }
-
-        loadQrDecoder()
-            .then(() => {
-                console.log("[UPI QR] Detector started");
-
-                // Scan immediately, then check periodically.
-                scanForUpiQr();
-                setInterval(scanForUpiQr, 1800);
-
-                // Also scan when new images/canvases are added.
-                const observer = new MutationObserver(() => {
-                    scanForUpiQr();
-                });
-
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true
-                });
-
-                window.__upiQrMutationObserver = observer;
-            })
-            .catch(error => {
-                console.error("[UPI QR] Decoder could not load:", error);
-            });
-    }
-
 })();
